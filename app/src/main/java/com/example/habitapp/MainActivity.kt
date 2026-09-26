@@ -5,26 +5,25 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.habitapp.ui.theme.HabitAppTheme
-import com.example.habitapp.ui.home.HomeScreen
+import com.example.habitapp.presentation.home.HomeScreen
+import com.example.habitapp.presentation.theme.HabitAppTheme
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
+
         setContent {
-            HabitAppTheme {
-                HabitApp()
-            }
+            HabitApp()
         }
     }
 }
+
 @Composable
 fun HabitApp() {
     HabitAppTheme {
         HomeScreen()
     }
 }
-

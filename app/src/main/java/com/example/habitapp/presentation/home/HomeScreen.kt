@@ -1,4 +1,4 @@
-package com.example.habitapp.ui.home
+package com.example.habitapp.presentation.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

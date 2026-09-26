@@ -1,4 +1,4 @@
-package com.example.habitapp.ui.theme
+package com.example.habitapp.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
