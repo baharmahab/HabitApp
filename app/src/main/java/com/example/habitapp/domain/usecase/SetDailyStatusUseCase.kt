@@ -1,5 +1,7 @@
 package com.example.habitapp.domain.usecase
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.domain.model.HabitDay
 import com.example.habitapp.domain.repository.HabitRepository
@@ -11,6 +13,7 @@ class SetDailyStatusUseCase(
     private val repository: HabitRepository
 ) {
 
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend operator fun invoke(
         habitId: Long,
         date: LocalDate,

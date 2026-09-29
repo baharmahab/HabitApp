@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp.gradle)
 }
 
 android {
@@ -80,4 +81,8 @@ dependencies {
 
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     testImplementation(kotlin("test"))
+
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 }
