@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.habitapp.data.local.converter.Converters
 import com.example.habitapp.data.local.dao.HabitDao
+import com.example.habitapp.data.local.dao.HabitDayDao
 import com.example.habitapp.data.local.entity.HabitDayEntity
 import com.example.habitapp.data.local.entity.HabitEntity
 
@@ -22,4 +23,5 @@ import com.example.habitapp.data.local.entity.HabitEntity
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun habitDao(): HabitDao
+    abstract fun habitDayDao(): HabitDayDao
 }
