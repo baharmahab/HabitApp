@@ -3,9 +3,10 @@ package com.example.habitapp.domain.usecase
 import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.domain.repository.HabitRepository
 import java.time.LocalDate
+import javax.inject.Inject
 
 // Returns the daily status of a habit for a specific date.
-class GetDailyStatusUseCase(
+class GetDailyStatusUseCase @Inject constructor(
     private val repository: HabitRepository
 ) {
 

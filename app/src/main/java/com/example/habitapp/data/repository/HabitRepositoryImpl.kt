@@ -11,8 +11,9 @@ import com.example.habitapp.domain.model.HabitDay
 import com.example.habitapp.domain.repository.HabitRepository
 import java.time.LocalDate
 import kotlinx.coroutines.flow.first
+import javax.inject.Inject
 
-class HabitRepositoryImpl(
+class HabitRepositoryImpl @Inject constructor(
     private val habitDao: HabitDao,
     private val habitDayDao: HabitDayDao
 ) : HabitRepository {

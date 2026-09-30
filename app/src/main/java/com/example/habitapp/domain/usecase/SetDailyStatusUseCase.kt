@@ -7,9 +7,10 @@ import com.example.habitapp.domain.model.HabitDay
 import com.example.habitapp.domain.repository.HabitRepository
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import javax.inject.Inject
 
 // Registers or updates a habit's daily status.
-class SetDailyStatusUseCase(
+class SetDailyStatusUseCase @Inject constructor(
     private val repository: HabitRepository
 ) {
 

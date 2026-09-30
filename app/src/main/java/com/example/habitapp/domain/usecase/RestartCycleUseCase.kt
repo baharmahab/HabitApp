@@ -4,9 +4,10 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.habitapp.domain.repository.HabitRepository
 import java.time.LocalDate
+import javax.inject.Inject
 
 // Restarts a failed habit cycle from today with cycle number 1.
-class RestartCycleUseCase(
+class RestartCycleUseCase @Inject constructor(
     private val repository: HabitRepository
 ) {
 

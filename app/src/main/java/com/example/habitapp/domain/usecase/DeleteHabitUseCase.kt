@@ -1,9 +1,10 @@
 package com.example.habitapp.domain.usecase
 
 import com.example.habitapp.domain.repository.HabitRepository
+import javax.inject.Inject
 
 // Deletes an existing habit.
-class DeleteHabitUseCase(
+class DeleteHabitUseCase @Inject constructor(
     private val repository: HabitRepository
 ) {
 

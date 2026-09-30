@@ -4,9 +4,10 @@ package com.example.habitapp.domain.usecase
 import com.example.habitapp.domain.model.Habit
 import com.example.habitapp.domain.repository.HabitRepository
 import java.time.LocalDate
+import javax.inject.Inject
 
 // Creates a new habit and starts its first cycle.
-class CreateHabitUseCase(
+class CreateHabitUseCase @Inject constructor(
     private val repository: HabitRepository
 ) {
 
