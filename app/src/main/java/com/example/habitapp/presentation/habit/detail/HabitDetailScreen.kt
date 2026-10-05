@@ -1,7 +1,7 @@
 package com.example.habitapp.presentation.habit.detail
+
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,12 +9,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,23 +20,19 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.habitapp.core.getDayNumber
+import com.example.habitapp.presentation.habit.component.HabitDayGrid
 import com.example.habitapp.presentation.habit.component.WeekDaysRow
-import java.time.LocalDate
+
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -58,7 +51,9 @@ fun HabitDetailScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = uiState.habitName)
+                    Text(
+                        text = uiState.habitName
+                    )
                 },
                 navigationIcon = {
                     IconButton(
@@ -73,6 +68,7 @@ fun HabitDetailScreen(
 
         when {
             uiState.isLoading -> {
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -84,6 +80,7 @@ fun HabitDetailScreen(
             }
 
             uiState.error != null && uiState.habitName.isBlank() -> {
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -97,6 +94,7 @@ fun HabitDetailScreen(
             }
 
             !uiState.isConfigured -> {
+
                 InitialConfigurationForm(
                     uiState = uiState,
                     onNormalChange = viewModel::updateNormal,
@@ -109,6 +107,7 @@ fun HabitDetailScreen(
             }
 
             else -> {
+
                 HabitDetailContent(
                     uiState = uiState,
                     onEdit = viewModel::startEditing,
@@ -121,7 +120,11 @@ fun HabitDetailScreen(
         }
     }
 }
-//------------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Initial configuration
+// -----------------------------------------------------------------------------
+
 @Composable
 private fun InitialConfigurationForm(
     uiState: HabitDetailUiState,
@@ -139,6 +142,7 @@ private fun InitialConfigurationForm(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+
         Text(
             text = "تنظیمات عادت",
             style = MaterialTheme.typography.titleLarge
@@ -199,7 +203,11 @@ private fun InitialConfigurationForm(
         }
     }
 }
-//-------------------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Configured habit detail
+// -----------------------------------------------------------------------------
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun HabitDetailContent(
@@ -218,10 +226,26 @@ private fun HabitDetailContent(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
+        // ---------------------------------------------------------------------
+        // روزهای هفته
+        // ---------------------------------------------------------------------
+
         WeekDaysRow(
             showDate = false,
             highlightToday = false
         )
+
+        // ---------------------------------------------------------------------
+        // 40 روز عادت
+        // ---------------------------------------------------------------------
+
+        HabitDayGrid(
+            startDate = uiState.startDate
+        )
+
+        // ---------------------------------------------------------------------
+        // تنظیمات عادت
+        // ---------------------------------------------------------------------
 
         Text(
             text = "تنظیمات عادت",
@@ -277,7 +301,11 @@ private fun HabitDetailContent(
         )
     }
 }
-//---------------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Editable row
+// -----------------------------------------------------------------------------
+
 @Composable
 private fun EditableHabitRow(
     title: String,
@@ -295,6 +323,7 @@ private fun EditableHabitRow(
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+
             OutlinedTextField(
                 value = editingValue,
                 onValueChange = onValueChange,
@@ -309,6 +338,7 @@ private fun EditableHabitRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
+
                 Button(
                     onClick = onCancel
                 ) {
@@ -333,9 +363,11 @@ private fun EditableHabitRow(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             Column(
                 modifier = Modifier.weight(1f)
             ) {
+
                 Text(
                     text = title,
                     style = MaterialTheme.typography.labelMedium
@@ -352,168 +384,6 @@ private fun EditableHabitRow(
                 }
             ) {
                 Text("✎")
-            }
-        }
-    }
-}
-//-------------------------------------------------------------------------------------
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-private fun HabitHistorySection(
-    startDate: LocalDate,
-    today: LocalDate = LocalDate.now()
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-
-        WeekDaysRow()
-
-        HistoryGrid(
-            startDate = startDate,
-            today = today
-        )
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-private fun HistoryGrid(
-    startDate: LocalDate,
-    today: LocalDate
-) {
-    if (startDate.isAfter(today)) {
-        return
-    }
-
-    val dates = generateSequence(startDate) { date ->
-        date.plusDays(1)
-    }
-        .takeWhile { date ->
-            !date.isAfter(today)
-        }
-        .toList()
-
-    /*
-     * مشخص می‌کند روز شروع عادت
-     * در کدام ستون هفته قرار می‌گیرد.
-     *
-     * شنبه = 0
-     * یکشنبه = 1
-     * ...
-     * جمعه = 6
-     */
-    val leadingEmptyDays = getDayNumber(startDate)
-
-    val items = buildList<LocalDate?> {
-
-        repeat(leadingEmptyDays) {
-            add(null)
-        }
-
-        addAll(dates)
-    }
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-
-        items.chunked(7).forEach { week ->
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-
-                week.forEach { date ->
-
-                    if (date == null) {
-                        EmptyHistoryDay()
-                    } else {
-                        HistoryDayCard(
-                            date = date
-                        )
-                    }
-                }
-
-                /*
-                 * اگر هفته آخر ۷ روز کامل نداشته باشد،
-                 * خانه‌های باقی‌مانده خالی می‌مانند.
-                 */
-                repeat(7 - week.size) {
-                    EmptyHistoryDay()
-                }
-            }
-        }
-    }
-}
-
-//------------------------------------------------------------------------------------
-@Composable
-private fun HistoryDay(
-    day: String,
-    status: String
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = day)
-        Text(text = status)
-    }
-}
-
-@Composable
-private fun EmptyHistoryDay() {
-    Box(
-        modifier = Modifier
-           // .weight(1f)
-            .padding(horizontal = 4.dp)
-    )
-}
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-private fun HistoryDayCard(
-    date: LocalDate
-) {
-    Column(
-        modifier = Modifier
-         //   .weight(1f)
-            .padding(horizontal = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(72.dp),
-            shape = RoundedCornerShape(50),
-            tonalElevation = 2.dp
-        ) {
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(vertical = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-
-                Text(
-                    text = date.dayOfMonth.toString(),
-                    style = MaterialTheme.typography.labelMedium
-                )
-
-                Box(
-                    modifier = Modifier
-                        .size(20.dp)
-                        .border(
-                            width = 1.5.dp,
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = CircleShape
-                        )
-                )
             }
         }
     }
