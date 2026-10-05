@@ -4,12 +4,15 @@ import com.example.habitapp.domain.model.Habit
 import com.example.habitapp.domain.repository.HabitRepository
 import javax.inject.Inject
 
-// Updates the information of an existing habit.
 class UpdateHabitUseCase @Inject constructor(
     private val repository: HabitRepository
 ) {
 
     suspend operator fun invoke(habit: Habit) {
+        require(habit.name.isNotBlank()) {
+            "نام عادت نمی‌تواند خالی باشد."
+        }
+
         repository.updateHabit(habit)
     }
 }

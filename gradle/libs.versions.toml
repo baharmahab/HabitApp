@@ -17,6 +17,8 @@ junitJunit = "4.12"
 room_version = "2.8.4"
 ksp = "2.2.20-2.0.4"
 dagger = "2.57.2"
+roomKtx = "2.8.5"
+foundationLayoutAndroid = "1.8.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,12 +38,19 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 junit-junit = { group = "junit", name = "junit", version.ref = "junitJunit" }
 
+compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+
 room-runtime = {group = "androidx.room", name = "room-runtime", version.ref = "room_version" }
 room-compiler = {group = "androidx.room", name = "room-compiler", version.ref = "room_version" }
 room-ktx = {group = "androidx.room", name = "room-ktx", version.ref = "room_version" }
 
 hilt-Android = { group = "com.google.dagger", name = "hilt-android", version.ref = "dagger" }
 hilt-Compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "dagger" }
+
+hilt-navigation-compose = {group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0"}
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
+androidx-compose-foundation-layout-android = { group = "androidx.compose.foundation", name = "foundation-layout-android", version.ref = "foundationLayoutAndroid" }
+
 
 
 [plugins]

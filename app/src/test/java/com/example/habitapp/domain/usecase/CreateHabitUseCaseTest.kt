@@ -15,12 +15,7 @@ class CreateHabitUseCaseTest {
         val useCase = CreateHabitUseCase(repository)
 
         useCase(
-            name = "Study",
-            startDate = LocalDate.now(),
-            normal = "10 minutes",
-            special = "5 minutes",
-            emergency = "2 minutes",
-            finalGoal = "1 hour"
+            name = "Study"
         )
 
         val habits = repository.getHabits()
@@ -28,7 +23,16 @@ class CreateHabitUseCaseTest {
         assertEquals(1, habits.size)
         assertNotNull(habits.first())
 
-        assertEquals("Study", habits.first().name)
-        assertEquals(1, habits.first().cycleNumber)
+        val habit = habits.first()
+
+        assertEquals("Study", habit.name)
+        assertEquals(1, habit.cycleNumber)
+
+        assertEquals(LocalDate.now(), habit.startDate)
+
+        assertEquals("", habit.normal)
+        assertEquals("", habit.special)
+        assertEquals("", habit.emergency)
+        assertEquals("", habit.finalGoal)
     }
 }

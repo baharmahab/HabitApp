@@ -8,12 +8,11 @@ import com.example.habitapp.domain.usecase.DeleteHabitUseCase
 import com.example.habitapp.domain.usecase.GetHabitsUseCase
 import com.example.habitapp.domain.usecase.UpdateHabitUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import javax.inject.Inject
 
 @HiltViewModel
 class HabitViewModel @Inject constructor(
@@ -32,7 +31,6 @@ class HabitViewModel @Inject constructor(
 
     private fun loadHabits() {
         viewModelScope.launch {
-
             _uiState.value = _uiState.value.copy(
                 isLoading = true,
                 error = null
@@ -47,7 +45,6 @@ class HabitViewModel @Inject constructor(
                 )
 
             } catch (e: Exception) {
-
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = e.message
@@ -57,29 +54,17 @@ class HabitViewModel @Inject constructor(
     }
 
     fun createHabit(
-        name: String,
-        startDate: LocalDate,
-        normal: String,
-        special: String,
-        emergency: String,
-        finalGoal: String
+        name: String
     ) {
         viewModelScope.launch {
-
             try {
                 createHabitUseCase(
-                    name = name,
-                    startDate = startDate,
-                    normal = normal,
-                    special = special,
-                    emergency = emergency,
-                    finalGoal = finalGoal
+                    name = name
                 )
 
                 loadHabits()
 
             } catch (e: Exception) {
-
                 _uiState.value = _uiState.value.copy(
                     error = e.message
                 )
@@ -89,13 +74,12 @@ class HabitViewModel @Inject constructor(
 
     fun updateHabit(habit: Habit) {
         viewModelScope.launch {
-
             try {
                 updateHabitUseCase(habit)
+
                 loadHabits()
 
             } catch (e: Exception) {
-
                 _uiState.value = _uiState.value.copy(
                     error = e.message
                 )
@@ -105,13 +89,12 @@ class HabitViewModel @Inject constructor(
 
     fun deleteHabit(habitId: Long) {
         viewModelScope.launch {
-
             try {
                 deleteHabitUseCase(habitId)
+
                 loadHabits()
 
             } catch (e: Exception) {
-
                 _uiState.value = _uiState.value.copy(
                     error = e.message
                 )

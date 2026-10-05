@@ -4,10 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.Composable
-import com.example.habitapp.presentation.home.HomeScreen
+import com.example.habitapp.presentation.navigation.HabitNavHost
 import com.example.habitapp.presentation.theme.HabitAppTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,14 +17,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            HabitApp()
+            HabitAppTheme {
+                HabitNavHost()
+            }
         }
-    }
-}
-
-@Composable
-fun HabitApp() {
-    HabitAppTheme {
-        HomeScreen()
     }
 }

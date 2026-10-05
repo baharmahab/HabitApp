@@ -1,32 +1,32 @@
 package com.example.habitapp.domain.usecase
 
-
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.example.habitapp.domain.model.Habit
 import com.example.habitapp.domain.repository.HabitRepository
 import java.time.LocalDate
 import javax.inject.Inject
 
-// Creates a new habit and starts its first cycle.
 class CreateHabitUseCase @Inject constructor(
     private val repository: HabitRepository
 ) {
 
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend operator fun invoke(
-        name: String,
-        startDate: LocalDate,
-        normal: String,
-        special: String,
-        emergency: String,
-        finalGoal: String
+        name: String
     ) {
+        require(name.isNotBlank()) {
+            "نام عادت نمی‌تواند خالی باشد."
+        }
+
         val habit = Habit(
             id = 0L,
-            name = name,
-            startDate = startDate,
-            normal = normal,
-            special = special,
-            emergency = emergency,
-            finalGoal = finalGoal,
+            name = name.trim(),
+            startDate = LocalDate.now(),
+            normal = "",
+            special = "",
+            emergency = "",
+            finalGoal = "",
             cycleNumber = 1
         )
 

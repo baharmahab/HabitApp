@@ -11,4 +11,15 @@ data class Habit(
     val emergency: String,
     val finalGoal: String,
     val cycleNumber: Int
-)
+) {
+
+    /**
+     * A habit is ready for daily tracking
+     * only when its required daily levels are configured.
+     */
+    val isConfigured: Boolean
+        get() =
+            normal.isNotBlank() &&
+                    special.isNotBlank() &&
+                    emergency.isNotBlank()
+}
