@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.habitapp.core.getDayNumber
+import com.example.habitapp.presentation.habit.component.WeekDaysRow
 import java.time.LocalDate
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
@@ -217,8 +218,9 @@ private fun HabitDetailContent(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
-        HabitHistorySection(
-            startDate = uiState.startDate
+        WeekDaysRow(
+            showDate = false,
+            highlightToday = false
         )
 
         Text(
@@ -462,34 +464,6 @@ private fun HistoryDay(
     }
 }
 
-@Composable
-private fun WeekDaysRow() {
-    CompositionLocalProvider(
-        LocalLayoutDirection provides LayoutDirection.Rtl
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            listOf(
-                "ش",
-                "ی",
-                "د",
-                "س",
-                "چ",
-                "پ",
-                "ج"
-            ).forEach { day ->
-
-                Text(
-                    text = day
-                )
-            }
-        }
-    }
-}
 @Composable
 private fun EmptyHistoryDay() {
     Box(

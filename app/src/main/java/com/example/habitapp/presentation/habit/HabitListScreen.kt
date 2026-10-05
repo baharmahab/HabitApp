@@ -22,6 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.habitapp.presentation.habit.component.AddHabitBottomSheet
 import com.example.habitapp.presentation.habit.component.HabitItem
+import com.example.habitapp.presentation.habit.component.WeekDaysRow
 
 @Composable
 fun HabitListScreen(
@@ -52,6 +53,7 @@ fun HabitListScreen(
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
+            WeekDaysRow()
 
             Text(
                 text = "عادت‌های من"
