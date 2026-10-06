@@ -1,6 +1,8 @@
 package com.example.habitapp.presentation.habit
 
 import EmptyHabitContent
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +26,7 @@ import com.example.habitapp.presentation.habit.component.AddHabitBottomSheet
 import com.example.habitapp.presentation.habit.component.HabitItem
 import com.example.habitapp.presentation.habit.component.WeekDaysRow
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HabitListScreen(
     viewModel: HabitViewModel = hiltViewModel(),
@@ -53,6 +56,7 @@ fun HabitListScreen(
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
+
             WeekDaysRow()
 
             Text(
@@ -86,6 +90,7 @@ fun HabitListScreen(
                         .weight(1f)
                         .fillMaxWidth()
                         .padding(top = 16.dp),
+
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
 
@@ -96,6 +101,8 @@ fun HabitListScreen(
 
                         HabitItem(
                             habit = habit,
+
+                            // فعلاً وضعیت روزانه واقعی را هنوز به دایره وصل نکرده‌ایم.
                             isCompleted = false,
 
                             onHabitClick = {
@@ -103,17 +110,14 @@ fun HabitListScreen(
                             },
 
                             onCheckClick = {
-                                if (!habit.isConfigured) {
-                                    onOpenHabitDetail(habit.id)
-                                }
+                                onOpenHabitDetail(habit.id)
+                            },
 
-                                /*
-                                 * اگر habit.isConfigured == true باشد،
-                                 * فعلاً کاری انجام نمی‌دهیم.
-                                 *
-                                 * ثبت وضعیت روزانه در مرحله Daily Status
-                                 * اضافه خواهد شد.
-                                 */
+                            onStatusSelected = { status ->
+                                viewModel.setDailyStatus(
+                                    habitId = habit.id,
+                                    status = status
+                                )
                             }
                         )
                     }

@@ -23,23 +23,42 @@ class SetDailyStatusUseCase @Inject constructor(
 
         val today = LocalDate.now()
 
-        val daysDifference = ChronoUnit.DAYS.between(date, today)
+        val daysDifference = ChronoUnit.DAYS.between(
+            date,
+            today
+        )
 
+        // Future dates are not editable.
         if (daysDifference < 0) {
             throw IllegalArgumentException(
                 "Cannot register status for a future date."
             )
         }
 
+        // Only today, yesterday, and the day before yesterday
+        // are editable.
         if (daysDifference > 2) {
             throw IllegalArgumentException(
                 "Daily status can only be registered for today, yesterday, or the day before yesterday."
             )
         }
 
-        val habit = repository.getHabitById(habitId)
-            ?: throw IllegalArgumentException("Habit not found.")
+        // Today cannot be marked as FAILED.
+        // A failure for today is determined later,
+        // after the editable period has passed.
+        if (daysDifference == 0L && status == DailyStatus.FAILED) {
+            throw IllegalArgumentException(
+                "Today cannot be marked as failed."
+            )
+        }
 
+        val habit = repository.getHabitById(habitId)
+            ?: throw IllegalArgumentException(
+                "Habit not found."
+            )
+
+        // A date before the habit's cycle start date
+        // cannot have a daily status.
         if (date.isBefore(habit.startDate)) {
             throw IllegalArgumentException(
                 "Cannot register status before the cycle start date."

@@ -1,13 +1,18 @@
 package com.example.habitapp.presentation.habit
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.domain.model.Habit
 import com.example.habitapp.domain.usecase.CreateHabitUseCase
 import com.example.habitapp.domain.usecase.DeleteHabitUseCase
 import com.example.habitapp.domain.usecase.GetHabitsUseCase
+import com.example.habitapp.domain.usecase.SetDailyStatusUseCase
 import com.example.habitapp.domain.usecase.UpdateHabitUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +24,8 @@ class HabitViewModel @Inject constructor(
     private val getHabitsUseCase: GetHabitsUseCase,
     private val createHabitUseCase: CreateHabitUseCase,
     private val updateHabitUseCase: UpdateHabitUseCase,
-    private val deleteHabitUseCase: DeleteHabitUseCase
+    private val deleteHabitUseCase: DeleteHabitUseCase,
+    private val setDailyStatusUseCase: SetDailyStatusUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HabitUiState())
@@ -53,6 +59,7 @@ class HabitViewModel @Inject constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun createHabit(
         name: String
     ) {
@@ -91,6 +98,29 @@ class HabitViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 deleteHabitUseCase(habitId)
+
+                loadHabits()
+
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message
+                )
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun setDailyStatus(
+        habitId: Long,
+        status: DailyStatus
+    ) {
+        viewModelScope.launch {
+            try {
+                setDailyStatusUseCase(
+                    habitId = habitId,
+                    date = LocalDate.now(),
+                    status = status
+                )
 
                 loadHabits()
 
