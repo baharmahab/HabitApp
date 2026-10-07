@@ -10,8 +10,10 @@ import com.example.habitapp.domain.model.Habit
 import com.example.habitapp.domain.model.HabitDay
 import com.example.habitapp.domain.repository.HabitRepository
 import java.time.LocalDate
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 class HabitRepositoryImpl @Inject constructor(
     private val habitDao: HabitDao,
@@ -74,6 +76,29 @@ class HabitRepositoryImpl @Inject constructor(
     }
 
     override suspend fun saveHabitDay(habitDay: HabitDay) {
-        habitDayDao.insertHabitDay(habitDay.toEntity())
+        habitDayDao.upsertHabitDay(habitDay.toEntity())
+    }
+
+    override fun observeHabitDays(
+        habitId: Long
+    ): Flow<List<HabitDay>> {
+        return habitDayDao
+            .observeHabitDays(habitId)
+            .map { entities ->
+                entities.map { it.toDomain() }
+            }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun observeTodayHabitDays(
+        date: LocalDate
+    ): Flow<List<HabitDay>> {
+        return habitDayDao
+            .observeTodayHabitDays(
+                date = date.toString()
+            )
+            .map { entities ->
+                entities.map { it.toDomain() }
+            }
     }
 }

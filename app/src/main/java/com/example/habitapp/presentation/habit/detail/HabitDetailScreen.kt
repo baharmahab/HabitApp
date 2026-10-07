@@ -5,12 +5,10 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -25,13 +23,21 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.habitapp.domain.model.DailyStatus
+import com.example.habitapp.presentation.habit.component.DailyStatusDialog
+import com.example.habitapp.presentation.habit.component.EditableHabitRow
 import com.example.habitapp.presentation.habit.component.HabitDayGrid
 import com.example.habitapp.presentation.habit.component.WeekDaysRow
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
@@ -68,7 +74,6 @@ fun HabitDetailScreen(
 
         when {
             uiState.isLoading -> {
-
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -80,7 +85,6 @@ fun HabitDetailScreen(
             }
 
             uiState.error != null && uiState.habitName.isBlank() -> {
-
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -94,7 +98,6 @@ fun HabitDetailScreen(
             }
 
             !uiState.isConfigured -> {
-
                 InitialConfigurationForm(
                     uiState = uiState,
                     onNormalChange = viewModel::updateNormal,
@@ -107,13 +110,13 @@ fun HabitDetailScreen(
             }
 
             else -> {
-
                 HabitDetailContent(
                     uiState = uiState,
                     onEdit = viewModel::startEditing,
                     onValueChange = viewModel::updateEditingValue,
                     onSaveEdit = viewModel::saveEditingField,
                     onCancelEdit = viewModel::cancelEditing,
+                    onSetDailyStatus = viewModel::setDailyStatus,
                     modifier = Modifier.padding(innerPadding)
                 )
             }
@@ -121,10 +124,8 @@ fun HabitDetailScreen(
     }
 }
 
-// -----------------------------------------------------------------------------
-// Initial configuration
-// -----------------------------------------------------------------------------
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun InitialConfigurationForm(
     uiState: HabitDetailUiState,
@@ -142,58 +143,67 @@ private fun InitialConfigurationForm(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Text(
+            text = "تنظیم اولیه عادت",
+            style = MaterialTheme.typography.headlineSmall
+        )
 
         Text(
-            text = "تنظیمات عادت",
-            style = MaterialTheme.typography.titleLarge
+            text = "برای شروع، مقدار سه وضعیت روزانه را مشخص کن.",
+            style = MaterialTheme.typography.bodyMedium
         )
 
         OutlinedTextField(
             value = uiState.normal,
             onValueChange = onNormalChange,
+            modifier = Modifier.fillMaxWidth(),
             label = {
                 Text("Normal")
             },
-            modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
 
         OutlinedTextField(
             value = uiState.special,
             onValueChange = onSpecialChange,
+            modifier = Modifier.fillMaxWidth(),
             label = {
                 Text("Special")
             },
-            modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
 
         OutlinedTextField(
             value = uiState.emergency,
             onValueChange = onEmergencyChange,
+            modifier = Modifier.fillMaxWidth(),
             label = {
                 Text("Emergency")
             },
-            modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
 
         OutlinedTextField(
             value = uiState.finalGoal,
             onValueChange = onFinalGoalChange,
+            modifier = Modifier.fillMaxWidth(),
             label = {
                 Text("هدف نهایی")
             },
-            modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
 
-        uiState.error?.let { error ->
+        if (uiState.error != null) {
             Text(
-                text = error,
-                color = MaterialTheme.colorScheme.error
+                text = uiState.error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
             )
         }
+
+        Spacer(
+            modifier = Modifier.padding(4.dp)
+        )
 
         Button(
             onClick = onSave,
@@ -204,10 +214,6 @@ private fun InitialConfigurationForm(
     }
 }
 
-// -----------------------------------------------------------------------------
-// Configured habit detail
-// -----------------------------------------------------------------------------
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun HabitDetailContent(
@@ -216,8 +222,13 @@ private fun HabitDetailContent(
     onValueChange: (String) -> Unit,
     onSaveEdit: () -> Unit,
     onCancelEdit: () -> Unit,
+    onSetDailyStatus: (LocalDate, DailyStatus) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var selectedDate by remember {
+        mutableStateOf<LocalDate?>(null)
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -226,26 +237,44 @@ private fun HabitDetailContent(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
-        // ---------------------------------------------------------------------
-        // روزهای هفته
-        // ---------------------------------------------------------------------
-
         WeekDaysRow(
             showDate = false,
             highlightToday = false
         )
 
-        // ---------------------------------------------------------------------
-        // 40 روز عادت
-        // ---------------------------------------------------------------------
-
         HabitDayGrid(
-            startDate = uiState.startDate
+            startDate = uiState.startDate,
+            dailyStatuses = uiState.dailyStatuses,
+            onDayClick = { date ->
+                selectedDate = date
+            }
         )
 
-        // ---------------------------------------------------------------------
-        // تنظیمات عادت
-        // ---------------------------------------------------------------------
+        selectedDate?.let { date ->
+
+            val daysDifference = ChronoUnit.DAYS.between(
+                date,
+                LocalDate.now()
+            )
+
+            DailyStatusDialog(
+                allowFailed = daysDifference in 1..2,
+
+                onStatusSelected = { status ->
+
+                    onSetDailyStatus(
+                        date,
+                        status
+                    )
+
+                    selectedDate = null
+                },
+
+                onDismiss = {
+                    selectedDate = null
+                }
+            )
+        }
 
         Text(
             text = "تنظیمات عادت",
@@ -253,7 +282,7 @@ private fun HabitDetailContent(
         )
 
         EditableHabitRow(
-            title = "Normal",
+            label = "Normal",
             value = uiState.normal,
             field = EditingField.NORMAL,
             editingField = uiState.editingField,
@@ -265,7 +294,7 @@ private fun HabitDetailContent(
         )
 
         EditableHabitRow(
-            title = "Special",
+            label = "Special",
             value = uiState.special,
             field = EditingField.SPECIAL,
             editingField = uiState.editingField,
@@ -277,7 +306,7 @@ private fun HabitDetailContent(
         )
 
         EditableHabitRow(
-            title = "Emergency",
+            label = "Emergency",
             value = uiState.emergency,
             field = EditingField.EMERGENCY,
             editingField = uiState.editingField,
@@ -289,7 +318,7 @@ private fun HabitDetailContent(
         )
 
         EditableHabitRow(
-            title = "هدف نهایی",
+            label = "هدف نهایی",
             value = uiState.finalGoal,
             field = EditingField.FINAL_GOAL,
             editingField = uiState.editingField,
@@ -299,92 +328,14 @@ private fun HabitDetailContent(
             onSave = onSaveEdit,
             onCancel = onCancelEdit
         )
-    }
-}
 
-// -----------------------------------------------------------------------------
-// Editable row
-// -----------------------------------------------------------------------------
-
-@Composable
-private fun EditableHabitRow(
-    title: String,
-    value: String,
-    field: EditingField,
-    editingField: EditingField?,
-    editingValue: String,
-    onEdit: (EditingField) -> Unit,
-    onValueChange: (String) -> Unit,
-    onSave: () -> Unit,
-    onCancel: () -> Unit
-) {
-    if (editingField == field) {
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-
-            OutlinedTextField(
-                value = editingValue,
-                onValueChange = onValueChange,
-                label = {
-                    Text(title)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+        if (uiState.error != null) {
+            Text(
+                text = uiState.error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
             )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-
-                Button(
-                    onClick = onCancel
-                ) {
-                    Text("انصراف")
-                }
-
-                Spacer(
-                    modifier = Modifier.size(8.dp)
-                )
-
-                Button(
-                    onClick = onSave
-                ) {
-                    Text("ذخیره")
-                }
-            }
-        }
-
-    } else {
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.labelMedium
-                )
-
-                Text(
-                    text = value
-                )
-            }
-
-            IconButton(
-                onClick = {
-                    onEdit(field)
-                }
-            ) {
-                Text("✎")
-            }
         }
     }
 }
+

@@ -6,7 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.habitapp.presentation.habit.HabitListScreen
+import com.example.habitapp.presentation.habit.HabitsScreen
 import com.example.habitapp.presentation.habit.detail.HabitDetailScreen
 
 @Composable
@@ -21,7 +21,7 @@ fun HabitNavHost() {
         composable(
             route = "habit_list"
         ) {
-            HabitListScreen(
+            HabitsScreen(
                 onOpenHabitDetail = { habitId ->
                     navController.navigate("habit_detail/$habitId")
                 }

@@ -1,8 +1,8 @@
 package com.example.habitapp.domain.repository
 
-
 import com.example.habitapp.domain.model.Habit
 import com.example.habitapp.domain.model.HabitDay
+import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
 interface HabitRepository {
@@ -29,4 +29,14 @@ interface HabitRepository {
     ): HabitDay?
 
     suspend fun saveHabitDay(habitDay: HabitDay)
+
+    // مشاهده زنده روزهای یک عادت
+    fun observeHabitDays(
+        habitId: Long
+    ): Flow<List<HabitDay>>
+
+    // مشاهده زنده وضعیت امروز همه عادت‌ها
+    fun observeTodayHabitDays(
+        date: LocalDate
+    ): Flow<List<HabitDay>>
 }

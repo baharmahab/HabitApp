@@ -28,7 +28,7 @@ import com.example.habitapp.presentation.habit.component.WeekDaysRow
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HabitListScreen(
+fun HabitsScreen(
     viewModel: HabitViewModel = hiltViewModel(),
     onOpenHabitDetail: (Long) -> Unit
 ) {
@@ -101,18 +101,13 @@ fun HabitListScreen(
 
                         HabitItem(
                             habit = habit,
-
-                            // فعلاً وضعیت روزانه واقعی را هنوز به دایره وصل نکرده‌ایم.
-                            isCompleted = false,
-
+                            todayStatus = uiState.todayStatuses[habit.id],
                             onHabitClick = {
                                 onOpenHabitDetail(habit.id)
                             },
-
                             onCheckClick = {
                                 onOpenHabitDetail(habit.id)
                             },
-
                             onStatusSelected = { status ->
                                 viewModel.setDailyStatus(
                                     habitId = habit.id,

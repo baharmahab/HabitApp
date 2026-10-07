@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,7 +21,7 @@ import com.example.habitapp.domain.model.Habit
 @Composable
 fun HabitItem(
     habit: Habit,
-    isCompleted: Boolean,
+    todayStatus: DailyStatus?,
     onHabitClick: () -> Unit,
     onCheckClick: () -> Unit,
     onStatusSelected: (DailyStatus) -> Unit
@@ -47,24 +46,16 @@ fun HabitItem(
         ) {
 
             Text(
-                text = habit.name,
-                style = MaterialTheme.typography.titleMedium
+                text = habit.name
             )
 
-            HabitCheckCircle(
-                checked = isCompleted,
-                onClick = {
+            DailyStatusCircle(
+                status = todayStatus,
+                modifier = Modifier.clickable {
 
                     if (!habit.isConfigured) {
-
-                        // تنظیمات عادت کامل نشده است.
-                        // کاربر باید ابتدا وارد جزئیات شود.
                         onCheckClick()
-
                     } else {
-
-                        // عادت تنظیم شده است.
-                        // دیالوگ انتخاب وضعیت باز می‌شود.
                         showDailyStatusDialog = true
                     }
                 }
@@ -73,14 +64,12 @@ fun HabitItem(
     }
 
     if (showDailyStatusDialog) {
+
         DailyStatusDialog(
+            allowFailed = false,
 
             onStatusSelected = { status ->
-
-                // ابتدا دیالوگ بسته می‌شود.
                 showDailyStatusDialog = false
-
-                // سپس وضعیت انتخاب‌شده به بیرون ارسال می‌شود.
                 onStatusSelected(status)
             },
 

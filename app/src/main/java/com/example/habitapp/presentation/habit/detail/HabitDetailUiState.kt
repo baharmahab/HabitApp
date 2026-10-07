@@ -2,6 +2,7 @@ package com.example.habitapp.presentation.habit.detail
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.example.habitapp.domain.model.DailyStatus
 import java.time.LocalDate
 import java.time.LocalDate.now
 
@@ -11,6 +12,8 @@ enum class EditingField {
     EMERGENCY,
     FINAL_GOAL
 }
+
+
 
 data class HabitDetailUiState @RequiresApi(Build.VERSION_CODES.O) constructor(
     val isLoading: Boolean = false,
@@ -24,6 +27,8 @@ data class HabitDetailUiState @RequiresApi(Build.VERSION_CODES.O) constructor(
     val finalGoal: String = "",
 
     val isConfigured: Boolean = false,
+
+    val dailyStatuses: Map<LocalDate, DailyStatus?> = emptyMap(),
 
     val editingField: EditingField? = null,
     val editingValue: String = "",

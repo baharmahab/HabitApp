@@ -1,8 +1,8 @@
 package com.example.habitapp.presentation.habit.component
 
-
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,19 +16,23 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import com.example.habitapp.domain.model.DailyStatus
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HabitDayGrid(
     startDate: LocalDate,
     dailyStatuses: Map<LocalDate, DailyStatus?> = emptyMap(),
+    onDayClick: (LocalDate) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val today = LocalDate.now()
+
     val days = (0 until 40).map { offset ->
         startDate.plusDays(offset.toLong())
     }
@@ -43,7 +47,7 @@ fun HabitDayGrid(
         DayOfWeek.FRIDAY -> 6
     }
 
-    val cells = buildList {
+    val cells = buildList<LocalDate?> {
         repeat(firstDayOffset) {
             add(null)
         }
@@ -58,7 +62,6 @@ fun HabitDayGrid(
             modifier = modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
             cells.chunked(7).forEach { week ->
 
                 Row(
@@ -77,9 +80,21 @@ fun HabitDayGrid(
 
                         } else {
 
+                            val daysDifference = ChronoUnit.DAYS.between(
+                                date,
+                                today
+                            )
+
+                            val isEditable =
+                                daysDifference in 0..2
+
                             HabitDayCell(
                                 date = date,
-                                status = dailyStatuses[date]
+                                status = dailyStatuses[date],
+                                isEditable = isEditable,
+                                onClick = {
+                                    onDayClick(date)
+                                }
                             )
                         }
                     }
@@ -100,10 +115,16 @@ fun HabitDayGrid(
 private fun HabitDayCell(
     date: LocalDate,
     status: DailyStatus?,
+    isEditable: Boolean,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier,
+        modifier = if (isEditable) {
+            modifier.clickable(onClick = onClick)
+        } else {
+            modifier
+        },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
