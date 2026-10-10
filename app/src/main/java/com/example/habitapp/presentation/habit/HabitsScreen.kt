@@ -1,3 +1,4 @@
+
 package com.example.habitapp.presentation.habit
 
 import EmptyHabitContent
@@ -24,7 +25,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.habitapp.presentation.habit.component.AddHabitBottomSheet
 import com.example.habitapp.presentation.habit.component.HabitItem
-import com.example.habitapp.presentation.habit.component.WeekDaysRow
+import com.example.habitapp.presentation.habit.component.HabitsTopBar
+import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -38,7 +40,19 @@ fun HabitsScreen(
         mutableStateOf(false)
     }
 
+    var selectedDate by remember {
+        mutableStateOf(LocalDate.now())
+    }
+
     Scaffold(
+        topBar = {
+            HabitsTopBar(
+                selectedDate = selectedDate,
+                onDateSelected = { date ->
+                    selectedDate = date
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -49,20 +63,12 @@ fun HabitsScreen(
             }
         }
     ) { innerPadding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-
-            WeekDaysRow()
-
-            Text(
-                text = "عادت‌های من"
-            )
-
             if (uiState.isLoading) {
                 Text(
                     text = "در حال بارگذاری...",
@@ -78,27 +84,21 @@ fun HabitsScreen(
             }
 
             if (uiState.habits.isEmpty() && !uiState.isLoading) {
-
                 EmptyHabitContent(
                     modifier = Modifier.weight(1f)
                 )
-
             } else {
-
                 LazyColumn(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
                         .padding(top = 16.dp),
-
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-
                     items(
                         items = uiState.habits,
                         key = { it.id }
                     ) { habit ->
-
                         HabitItem(
                             habit = habit,
                             todayStatus = uiState.todayStatuses[habit.id],
@@ -122,18 +122,12 @@ fun HabitsScreen(
     }
 
     if (showAddHabitSheet) {
-
         AddHabitBottomSheet(
             onDismiss = {
                 showAddHabitSheet = false
             },
-
             onCreateHabit = { name ->
-
-                viewModel.createHabit(
-                    name = name
-                )
-
+                viewModel.createHabit(name = name)
                 showAddHabitSheet = false
             }
         )

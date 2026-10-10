@@ -238,8 +238,10 @@ private fun HabitDetailContent(
     ) {
 
         WeekDaysRow(
+            selectedDate = LocalDate.now(),
             showDate = false,
-            highlightToday = false
+            highlightToday = false,
+            onDateSelected = {}
         )
 
         HabitDayGrid(

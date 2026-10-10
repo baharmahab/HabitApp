@@ -1,67 +1,36 @@
-package com.example.habitapp.presentation.theme
+
+package com.example.habitapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// ─────────────────────────────────────────────
-// Primary — Green
-// ─────────────────────────────────────────────
-
+// Brand
 val GreenPrimary = Color(0xFF6FAF8F)
-val GreenOnPrimary = Color(0xFFFFFFFF)
-
+val GreenOnPrimary = Color(0xFF173D2B)
 val GreenPrimaryContainer = Color(0xFFDCEEE3)
-val GreenOnPrimaryContainer = Color(0xFF183B2A)
+val GreenOnPrimaryContainer = Color(0xFF234B35)
 
-
-// ─────────────────────────────────────────────
-// Secondary — Soft Green
-// ─────────────────────────────────────────────
-
-val GreenSecondary = Color(0xFF8CB9A2)
-val GreenOnSecondary = Color(0xFFFFFFFF)
-
-val GreenSecondaryContainer = Color(0xFFE4F1E9)
-val GreenOnSecondaryContainer = Color(0xFF1D392A)
-
-
-// ─────────────────────────────────────────────
-// Tertiary — Soft Blue
-// ─────────────────────────────────────────────
-
-val BlueAccent = Color(0xFF7EA6C6)
-val BlueOnAccent = Color(0xFFFFFFFF)
-
-val BlueContainer = Color(0xFFE3EEF6)
-val BlueOnContainer = Color(0xFF193447)
-
-
-// ─────────────────────────────────────────────
-// Background & Surface
-// ─────────────────────────────────────────────
-
-val AppBackground = Color(0xFFF4F8F5)
-val AppOnBackground = Color(0xFF26352D)
-
+// App surfaces
+val AppBackground = Color(0xFFF4F1E8)
+val TopBarBackground = Color(0xFFF0F6F0)
 val AppSurface = Color(0xFFFFFFFF)
-val AppOnSurface = Color(0xFF26352D)
+val AppSurfaceVariant = Color(0xFFE8EDE7)
 
-val AppSurfaceVariant = Color(0xFFE8EFEB)
-val AppOnSurfaceVariant = Color(0xFF718078)
+// Text
+val TextPrimary = Color(0xFF345744)
+val TextSecondary = Color(0xFF69776D)
+val TextDisabled = Color(0xFF9AA49B)
 
+// Borders and separators
+val AppOutline = Color(0xFFD5DED5)
+val AppDivider = Color(0xFFE5EAE4)
 
-// ─────────────────────────────────────────────
-// Outline / Border
-// ─────────────────────────────────────────────
+// Daily status
+val StatusNormal = Color(0xFF3E966B)
+val StatusSpecial = Color(0xFF4E8FC4)
+val StatusEmergency = Color(0xFF9870D5)
+val StatusFailed = Color(0xFFD7655D)
 
-val AppOutline = Color(0xFFDDE6E0)
-
-
-// ─────────────────────────────────────────────
-// Error
-// ─────────────────────────────────────────────
-
-val AppError = Color(0xFFD96C6C)
-val AppOnError = Color(0xFFFFFFFF)
-
-val AppErrorContainer = Color(0xFFF8DEDE)
-val AppOnErrorContainer = Color(0xFF5C1A1A)
+val StatusNormalContainer = Color(0xFFDCEEE3)
+val StatusSpecialContainer = Color(0xFFDCEAF7)
+val StatusEmergencyContainer = Color(0xFFEEE6FA)
+val StatusFailedContainer = Color(0xFFFBE5E3)
