@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.habitapp.domain.model.DailyStatus
+import com.example.habitapp.domain.model.Habit
 import com.example.habitapp.domain.usecase.CreateHabitUseCase
 import com.example.habitapp.domain.usecase.DeleteHabitUseCase
 import com.example.habitapp.domain.usecase.GetHabitsUseCase
@@ -99,17 +100,36 @@ class HabitViewModel @Inject constructor(
         }
     }
 
-    fun updateHabit(habit: com.example.habitapp.domain.model.Habit) {
+    fun updateHabit(
+        habit: Habit,
+        onResult: (Boolean) -> Unit = {}
+    ) {
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                error = null
+            )
+
             try {
                 updateHabitUseCase(habit)
-                loadHabits()
 
-            } catch (e: Exception) {
+                val habits = getHabitsUseCase()
 
                 _uiState.value = _uiState.value.copy(
-                    error = e.message ?: "ویرایش عادت انجام نشد."
+                    habits = habits,
+                    isLoading = false,
+                    error = null
                 )
+
+                onResult(true)
+
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message
+                        ?: "ذخیره تنظیمات عادت انجام نشد."
+                )
+
+                onResult(false)
             }
         }
     }

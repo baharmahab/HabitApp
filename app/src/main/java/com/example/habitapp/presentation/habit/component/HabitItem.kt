@@ -23,16 +23,20 @@ fun HabitItem(
     habit: Habit,
     todayStatus: DailyStatus?,
     onHabitClick: () -> Unit,
-    onCheckClick: () -> Unit,
+    onConfigureHabitClick: () -> Unit,
     onStatusSelected: (DailyStatus) -> Unit
 ) {
+    // وضعیت نمایش یا عدم نمایش دیالوگ تعیین وضعیت را نگه می‌دارد.
+    // مقدار اولیه false است؛ بنابراین دیالوگ در ابتدا نمایش داده نمی‌شود.
     var showDailyStatusDialog by remember {
         mutableStateOf(false)
     }
 
+    // کارت مربوط به یک عادت را نمایش می‌دهد.
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            // با کلیک روی کارت، صفحه جزئیات عادت باز می‌شود.
             .clickable {
                 onHabitClick()
             }
@@ -41,20 +45,25 @@ fun HabitItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
+            // نام عادت و دایره وضعیت را در دو طرف ردیف قرار می‌دهد.
             horizontalArrangement = Arrangement.SpaceBetween,
+            // اجزای ردیف را از نظر عمودی در مرکز قرار می‌دهد.
             verticalAlignment = Alignment.CenterVertically
         ) {
-
+            // نام عادت را نمایش می‌دهد.
             Text(
                 text = habit.name
             )
 
+            // دایره وضعیت روز جاری را نمایش می‌دهد.
             DailyStatusCircle(
                 status = todayStatus,
                 modifier = Modifier.clickable {
-
+                    // اگر عادت هنوز تنظیم نشده باشد،
+                    // کاربر مستقیماً به صفحه جزئیات هدایت می‌شود
+                    // تا مقادیر ضروری عادت را تکمیل کند.
                     if (!habit.isConfigured) {
-                        onCheckClick()
+                        onConfigureHabitClick()
                     } else {
                         showDailyStatusDialog = true
                     }
@@ -63,16 +72,22 @@ fun HabitItem(
         }
     }
 
+    // فقط زمانی دیالوگ ساخته و نمایش داده می‌شود
+    // که مقدار showDailyStatusDialog برابر true باشد.
     if (showDailyStatusDialog) {
-
         DailyStatusDialog(
+            // در این فراخوانی، انتخاب وضعیت FAILED مجاز نیست.
             allowFailed = false,
 
+            // پس از انتخاب وضعیت، دیالوگ بسته می‌شود
+            // و وضعیت انتخاب‌شده برای ثبت به لایه بالاتر ارسال می‌شود.
             onStatusSelected = { status ->
                 showDailyStatusDialog = false
                 onStatusSelected(status)
             },
 
+            // اگر کاربر دیالوگ را ببندد،
+            // فقط دیالوگ بسته می‌شود و وضعیتی ثبت نمی‌شود.
             onDismiss = {
                 showDailyStatusDialog = false
             }

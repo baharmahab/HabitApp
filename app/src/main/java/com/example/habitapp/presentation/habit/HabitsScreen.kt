@@ -27,7 +27,12 @@ import com.example.habitapp.presentation.habit.component.AddHabitBottomSheet
 import com.example.habitapp.presentation.habit.component.HabitItem
 import com.example.habitapp.presentation.habit.component.HabitsTopBar
 import java.time.LocalDate
-
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.example.habitapp.domain.model.Habit
+import com.example.habitapp.presentation.habit.component.ConfigureHabitBottomSheet
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HabitsScreen(
@@ -42,6 +47,9 @@ fun HabitsScreen(
 
     var selectedDate by remember {
         mutableStateOf(LocalDate.now())
+    }
+    var habitToConfigure by remember {
+        mutableStateOf<Habit?>(null)
     }
 
     Scaffold(
@@ -103,10 +111,14 @@ fun HabitsScreen(
                             habit = habit,
                             todayStatus = uiState.todayStatuses[habit.id],
                             onHabitClick = {
-                                onOpenHabitDetail(habit.id)
+                                if (habit.isConfigured) {
+                                    onOpenHabitDetail(habit.id)
+                                } else {
+                                    habitToConfigure = habit
+                                }
                             },
-                            onCheckClick = {
-                                onOpenHabitDetail(habit.id)
+                            onConfigureHabitClick = {
+                                habitToConfigure = habit
                             },
                             onStatusSelected = { status ->
                                 viewModel.setDailyStatus(
@@ -129,6 +141,21 @@ fun HabitsScreen(
             onCreateHabit = { name ->
                 viewModel.createHabit(name = name)
                 showAddHabitSheet = false
+            }
+        )
+    }
+    habitToConfigure?.let { habit ->
+        ConfigureHabitBottomSheet(
+            habit = habit,
+            error = uiState.error,
+            onDismiss = {
+                habitToConfigure = null
+            },
+            onSave = { updatedHabit, onResult ->
+                viewModel.updateHabit(
+                    habit = updatedHabit,
+                    onResult = onResult
+                )
             }
         )
     }

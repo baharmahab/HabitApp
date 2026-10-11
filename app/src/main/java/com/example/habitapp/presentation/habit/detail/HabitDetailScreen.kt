@@ -5,18 +5,14 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -97,18 +93,6 @@ fun HabitDetailScreen(
                 }
             }
 
-            !uiState.isConfigured -> {
-                InitialConfigurationForm(
-                    uiState = uiState,
-                    onNormalChange = viewModel::updateNormal,
-                    onSpecialChange = viewModel::updateSpecial,
-                    onEmergencyChange = viewModel::updateEmergency,
-                    onFinalGoalChange = viewModel::updateFinalGoal,
-                    onSave = viewModel::saveInitialConfiguration,
-                    modifier = Modifier.padding(innerPadding)
-                )
-            }
-
             else -> {
                 HabitDetailContent(
                     uiState = uiState,
@@ -124,95 +108,6 @@ fun HabitDetailScreen(
     }
 }
 
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-private fun InitialConfigurationForm(
-    uiState: HabitDetailUiState,
-    onNormalChange: (String) -> Unit,
-    onSpecialChange: (String) -> Unit,
-    onEmergencyChange: (String) -> Unit,
-    onFinalGoalChange: (String) -> Unit,
-    onSave: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(
-            text = "تنظیم اولیه عادت",
-            style = MaterialTheme.typography.headlineSmall
-        )
-
-        Text(
-            text = "برای شروع، مقدار سه وضعیت روزانه را مشخص کن.",
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        OutlinedTextField(
-            value = uiState.normal,
-            onValueChange = onNormalChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = {
-                Text("Normal")
-            },
-            singleLine = true
-        )
-
-        OutlinedTextField(
-            value = uiState.special,
-            onValueChange = onSpecialChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = {
-                Text("Special")
-            },
-            singleLine = true
-        )
-
-        OutlinedTextField(
-            value = uiState.emergency,
-            onValueChange = onEmergencyChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = {
-                Text("Emergency")
-            },
-            singleLine = true
-        )
-
-        OutlinedTextField(
-            value = uiState.finalGoal,
-            onValueChange = onFinalGoalChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = {
-                Text("هدف نهایی")
-            },
-            singleLine = true
-        )
-
-        if (uiState.error != null) {
-            Text(
-                text = uiState.error,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-
-        Spacer(
-            modifier = Modifier.padding(4.dp)
-        )
-
-        Button(
-            onClick = onSave,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("ذخیره")
-        }
-    }
-}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
