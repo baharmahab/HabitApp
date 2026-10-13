@@ -32,20 +32,21 @@ fun HabitsTopBar(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth(),
         color = TopBarBackground
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(180.dp)
         ) {
             Text(
                 text = selectedDate.format(HeaderDateFormatter),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
-                        top = 16.dp,
+                        top = 60.dp,
                         bottom = 12.dp
                     ),
                 textAlign = TextAlign.Center,

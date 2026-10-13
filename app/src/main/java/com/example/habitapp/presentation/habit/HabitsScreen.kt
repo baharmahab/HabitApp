@@ -1,9 +1,10 @@
-
 package com.example.habitapp.presentation.habit
 
 import EmptyHabitContent
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,24 +16,27 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.Alignment
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.habitapp.domain.model.Habit
 import com.example.habitapp.presentation.habit.component.AddHabitBottomSheet
+import com.example.habitapp.presentation.habit.component.ConfigureHabitBottomSheet
+import com.example.habitapp.presentation.habit.component.DeleteHabitBottomSheet
 import com.example.habitapp.presentation.habit.component.HabitItem
 import com.example.habitapp.presentation.habit.component.HabitsTopBar
 import java.time.LocalDate
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import com.example.habitapp.domain.model.Habit
-import com.example.habitapp.presentation.habit.component.ConfigureHabitBottomSheet
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HabitsScreen(
@@ -41,40 +45,61 @@ fun HabitsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    var showAddHabitSheet by remember {
-        mutableStateOf(false)
+    var currentSheet by remember {
+        mutableStateOf<HabitSheet?>(null)
     }
 
     var selectedDate by remember {
         mutableStateOf(LocalDate.now())
     }
-    var habitToConfigure by remember {
-        mutableStateOf<Habit?>(null)
+
+    // شناسه کارتی که بخش حذف آن باز شده است
+    var revealedHabitId by remember {
+        mutableStateOf<Long?>(null)
     }
 
     Scaffold(
+        floatingActionButtonPosition = androidx.compose.material3.FabPosition.Start,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    revealedHabitId = null
+                    currentSheet = HabitSheet.AddHabit
+                },
+                modifier = Modifier.padding(0.dp),
+                shape = CircleShape
+            ) {
+                Text(
+                    text = "+",
+                    fontSize = 45.sp,
+                    fontWeight = FontWeight.Thin
+                )
+            }
+        },
         topBar = {
             HabitsTopBar(
                 selectedDate = selectedDate,
                 onDateSelected = { date ->
+                    revealedHabitId = null
                     selectedDate = date
                 }
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    showAddHabitSheet = true
-                }
-            ) {
-                Text("+")
-            }
         }
     ) { innerPadding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                // لمس فضای خالی، کارت بازشده را می‌بندد
+                .clickable(
+                    interactionSource = remember {
+                        MutableInteractionSource()
+                    },
+                    indication = null
+                ) {
+                    revealedHabitId = null
+                }
                 .padding(16.dp)
         ) {
             if (uiState.isLoading) {
@@ -105,26 +130,54 @@ fun HabitsScreen(
                 ) {
                     items(
                         items = uiState.habits,
-                        key = { it.id }
+                        key = { habit -> habit.id }
                     ) { habit ->
+
                         HabitItem(
                             habit = habit,
                             todayStatus = uiState.todayStatuses[habit.id],
+
                             onHabitClick = {
+                                revealedHabitId = null
+
                                 if (habit.isConfigured) {
                                     onOpenHabitDetail(habit.id)
                                 } else {
-                                    habitToConfigure = habit
+                                    currentSheet =
+                                        HabitSheet.ConfigureHabit(habit.id)
                                 }
                             },
+
                             onConfigureHabitClick = {
-                                habitToConfigure = habit
+                                revealedHabitId = null
+                                currentSheet =
+                                    HabitSheet.ConfigureHabit(habit.id)
                             },
+
                             onStatusSelected = { status ->
+                                revealedHabitId = null
                                 viewModel.setDailyStatus(
                                     habitId = habit.id,
                                     status = status
                                 )
+                            },
+
+                            onDeleteClick = {
+                                currentSheet =
+                                    HabitSheet.DeleteHabit(habit.id)
+                            },
+
+                            revealed = revealedHabitId == habit.id,
+
+                            onReveal = {
+                                // کارت جدید باز می‌شود و کارت قبلی بسته خواهد شد
+                                revealedHabitId = habit.id
+                            },
+
+                            onCloseReveal = {
+                                if (revealedHabitId == habit.id) {
+                                    revealedHabitId = null
+                                }
                             }
                         )
                     }
@@ -133,30 +186,63 @@ fun HabitsScreen(
         }
     }
 
-    if (showAddHabitSheet) {
-        AddHabitBottomSheet(
-            onDismiss = {
-                showAddHabitSheet = false
-            },
-            onCreateHabit = { name ->
-                viewModel.createHabit(name = name)
-                showAddHabitSheet = false
+    when (val sheet = currentSheet) {
+        HabitSheet.AddHabit -> {
+            AddHabitBottomSheet(
+                onDismiss = {
+                    currentSheet = null
+                },
+                onCreateHabit = { name ->
+                    viewModel.createHabit(name = name)
+                    currentSheet = null
+                    revealedHabitId = null
+                }
+            )
+        }
+
+        is HabitSheet.ConfigureHabit -> {
+            val habit = uiState.habits.firstOrNull {
+                it.id == sheet.habitId
             }
-        )
-    }
-    habitToConfigure?.let { habit ->
-        ConfigureHabitBottomSheet(
-            habit = habit,
-            error = uiState.error,
-            onDismiss = {
-                habitToConfigure = null
-            },
-            onSave = { updatedHabit, onResult ->
-                viewModel.updateHabit(
-                    habit = updatedHabit,
-                    onResult = onResult
+
+            habit?.let {
+                ConfigureHabitBottomSheet(
+                    habit = it,
+                    error = uiState.error,
+                    onDismiss = {
+                        currentSheet = null
+                    },
+                    onSave = { updatedHabit, onResult ->
+                        viewModel.updateHabit(
+                            habit = updatedHabit,
+                            onResult = onResult
+                        )
+                    }
                 )
             }
-        )
+        }
+        is HabitSheet.DeleteHabit -> {
+            val habit = uiState.habits.firstOrNull {
+                it.id == sheet.habitId
+            }
+
+            DeleteHabitBottomSheet(
+                habitName = habit?.name ?: "این عادت",
+
+                onDismiss = {
+                    currentSheet = null
+                    revealedHabitId = null
+                },
+
+                onConfirmDelete = {
+                    viewModel.deleteHabit(sheet.habitId)
+
+                    currentSheet = null
+                    revealedHabitId = null
+                }
+            )
+        }
+
+        null -> Unit
     }
 }

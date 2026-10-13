@@ -27,16 +27,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.safeDrawing)
-            ){
-                HabitAppTheme {
-                    HabitNavHost()
-                }
+            HabitAppTheme {
+                HabitNavHost()
             }
-
         }
     }
 }
