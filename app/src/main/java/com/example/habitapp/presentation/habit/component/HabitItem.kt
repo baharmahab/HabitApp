@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.domain.model.Habit
+import java.time.LocalDate
 
 @Composable
 fun HabitItem(
@@ -67,6 +69,7 @@ fun HabitItem(
     LaunchedEffect(revealed) {
         dragOffset = if (revealed) -revealWidth else 0f
     }
+    val isPendingDate = LocalDate.now() == habit.nextPendingDate
 
     Box(
         modifier = Modifier
@@ -92,6 +95,7 @@ fun HabitItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(85.dp)
+                .alpha(if (isPendingDate) 1f else 0.5f)
                 .offset {
                     IntOffset(
                         x = dragOffset.roundToInt(),
@@ -140,10 +144,8 @@ fun HabitItem(
 
                 DailyStatusCircle(
                     status = todayStatus,
-                    modifier = Modifier.clickable {
-                        if (revealed || dragOffset < 0f) {
-                            onCloseReveal()
-                        } else if (!habit.isConfigured) {
+                    modifier = Modifier.clickable(enabled = isPendingDate) {
+                        if (!habit.isConfigured) {
                             onConfigureHabitClick()
                         } else {
                             showDailyStatusDialog = true

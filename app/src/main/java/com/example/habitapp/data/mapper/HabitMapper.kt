@@ -1,3 +1,4 @@
+
 package com.example.habitapp.data.mapper
 
 import android.os.Build
@@ -16,7 +17,8 @@ fun HabitEntity.toDomain(): Habit {
         special = special,
         emergency = emergency,
         finalGoal = finalGoal,
-        cycleNumber = cycleNumber
+        cycleNumber = cycleNumber,
+        nextPendingDate = LocalDate.parse(nextPendingDate)
     )
 }
 
@@ -29,6 +31,7 @@ fun Habit.toEntity(): HabitEntity {
         special = special,
         emergency = emergency,
         finalGoal = finalGoal,
-        cycleNumber = cycleNumber
+        cycleNumber = cycleNumber,
+        nextPendingDate = nextPendingDate.toString()
     )
 }

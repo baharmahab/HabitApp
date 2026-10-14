@@ -20,5 +20,6 @@ data class HabitEntity(
 
     val finalGoal: String,
 
-    val cycleNumber: Int
+    val cycleNumber: Int,
+    val nextPendingDate: String = startDate
 )

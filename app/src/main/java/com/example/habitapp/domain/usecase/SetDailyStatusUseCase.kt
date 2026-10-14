@@ -35,14 +35,6 @@ class SetDailyStatusUseCase @Inject constructor(
             )
         }
 
-        // Only today, yesterday, and the day before yesterday
-        // are editable.
-        if (daysDifference > 2) {
-            throw IllegalArgumentException(
-                "Daily status can only be registered for today, yesterday, or the day before yesterday."
-            )
-        }
-
         // Today cannot be marked as FAILED.
         // A failure for today is determined later,
         // after the editable period has passed.

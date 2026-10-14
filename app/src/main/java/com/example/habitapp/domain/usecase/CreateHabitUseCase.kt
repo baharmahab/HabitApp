@@ -1,3 +1,4 @@
+
 package com.example.habitapp.domain.usecase
 
 import android.os.Build
@@ -19,15 +20,18 @@ class CreateHabitUseCase @Inject constructor(
             "نام عادت نمی‌تواند خالی باشد."
         }
 
+        val startDate = LocalDate.now()
+
         val habit = Habit(
             id = 0L,
             name = name.trim(),
-            startDate = LocalDate.now(),
+            startDate = startDate,
             normal = "",
             special = "",
             emergency = "",
             finalGoal = "",
-            cycleNumber = 1
+            cycleNumber = 1,
+            nextPendingDate = startDate
         )
 
         repository.insertHabit(habit)

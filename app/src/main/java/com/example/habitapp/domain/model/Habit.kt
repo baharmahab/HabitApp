@@ -1,3 +1,4 @@
+
 package com.example.habitapp.domain.model
 
 import java.time.LocalDate
@@ -10,7 +11,10 @@ data class Habit(
     val special: String,
     val emergency: String,
     val finalGoal: String,
-    val cycleNumber: Int
+    val cycleNumber: Int,
+
+    // Oldest date whose status has not been determined yet
+    val nextPendingDate: LocalDate = startDate
 ) {
 
     /**
