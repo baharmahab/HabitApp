@@ -20,7 +20,6 @@ class SetDailyStatusUseCase @Inject constructor(
         date: LocalDate,
         status: DailyStatus
     ) {
-
         val today = LocalDate.now()
 
         val daysDifference = ChronoUnit.DAYS.between(
@@ -36,9 +35,9 @@ class SetDailyStatusUseCase @Inject constructor(
         }
 
         // Today cannot be marked as FAILED.
-        // A failure for today is determined later,
-        // after the editable period has passed.
-        if (daysDifference == 0L && status == DailyStatus.FAILED) {
+        if (daysDifference == 0L &&
+            status == DailyStatus.FAILED
+        ) {
             throw IllegalArgumentException(
                 "Today cannot be marked as failed."
             )
@@ -62,6 +61,17 @@ class SetDailyStatusUseCase @Inject constructor(
             date = date
         )
 
+        // Allow editing an already registered day.
+        // A new status can only be registered for nextPendingDate.
+        val isNextPendingDate = date == habit.nextPendingDate
+        val isAlreadyRegistered = existingDay?.status != null
+
+        if (!isNextPendingDate && !isAlreadyRegistered) {
+            throw IllegalArgumentException(
+                "You must register the previous days first."
+            )
+        }
+
         val habitDay = if (existingDay != null) {
             existingDay.copy(
                 status = status
@@ -75,6 +85,16 @@ class SetDailyStatusUseCase @Inject constructor(
             )
         }
 
+        // Save the daily status first.
         repository.saveHabitDay(habitDay)
+
+        // Advance only when registering the next pending day.
+        if (isNextPendingDate) {
+            repository.updateHabit(
+                habit.copy(
+                    nextPendingDate = habit.nextPendingDate.plusDays(1)
+                )
+            )
+        }
     }
 }

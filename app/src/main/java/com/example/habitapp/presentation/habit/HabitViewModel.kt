@@ -8,7 +8,9 @@ import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.domain.model.Habit
 import com.example.habitapp.domain.usecase.CreateHabitUseCase
 import com.example.habitapp.domain.usecase.DeleteHabitUseCase
+import com.example.habitapp.domain.usecase.GetHabitCardStateUseCase
 import com.example.habitapp.domain.usecase.GetHabitsUseCase
+import com.example.habitapp.domain.usecase.ObserveHabitsUseCase
 import com.example.habitapp.domain.usecase.ObserveTodayHabitDaysUseCase
 import com.example.habitapp.domain.usecase.SetDailyStatusUseCase
 import com.example.habitapp.domain.usecase.UpdateHabitUseCase
@@ -18,6 +20,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -30,14 +33,16 @@ class HabitViewModel @Inject constructor(
     private val updateHabitUseCase: UpdateHabitUseCase,
     private val deleteHabitUseCase: DeleteHabitUseCase,
     private val setDailyStatusUseCase: SetDailyStatusUseCase,
-    private val observeTodayHabitDaysUseCase: ObserveTodayHabitDaysUseCase
+    private val observeTodayHabitDaysUseCase: ObserveTodayHabitDaysUseCase,
+    private val getHabitCardStateUseCase: GetHabitCardStateUseCase,
+    private val observeHabitsUseCase: ObserveHabitsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HabitUiState())
     val uiState: StateFlow<HabitUiState> = _uiState.asStateFlow()
 
     init {
-        loadHabits()
+        observeHabits()
         observeTodayStatuses()
     }
 
@@ -50,6 +55,7 @@ class HabitViewModel @Inject constructor(
 
             try {
                 val habits = getHabitsUseCase()
+                loadHabitCardStates(habits)
 
                 _uiState.value = _uiState.value.copy(
                     habits = habits,
@@ -63,7 +69,25 @@ class HabitViewModel @Inject constructor(
                     error = e.message ?: "خطایی رخ داد."
                 )
             }
+
         }
+    }
+
+    private suspend fun loadHabitCardStates(
+        habits: List<Habit>
+    ) {
+        val today = LocalDate.now()
+
+        val states = habits.associate { habit ->
+            habit.id to getHabitCardStateUseCase(
+                habitId = habit.id,
+                today = today
+            )
+        }
+
+        _uiState.value = _uiState.value.copy(
+            habitCardStates = states
+        )
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -80,6 +104,8 @@ class HabitViewModel @Inject constructor(
                     todayStatuses = todayStatuses,
                     error = null
                 )
+                loadHabitCardStates(_uiState.value.habits)
+
             }
             .launchIn(viewModelScope)
     }
@@ -162,6 +188,8 @@ class HabitViewModel @Inject constructor(
                     date = LocalDate.now(),
                     status = status
                 )
+                val habits = getHabitsUseCase()
+                loadHabitCardStates(habits)
 
                 // نیازی نیست todayStatuses را دستی تغییر دهیم.
                 //
@@ -184,5 +212,25 @@ class HabitViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun observeHabits() {
+        observeHabitsUseCase()
+            .onEach { habits ->
+                _uiState.value = _uiState.value.copy(
+                    habits = habits,
+                    isLoading = false,
+                    error = null
+                )
+
+                loadHabitCardStates(habits)
+            }
+            .catch { e ->
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message
+                )
+            }
+            .launchIn(viewModelScope)
     }
 }

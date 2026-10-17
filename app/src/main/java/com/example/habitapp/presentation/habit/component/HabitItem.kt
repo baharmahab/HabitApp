@@ -1,5 +1,7 @@
 package com.example.habitapp.presentation.habit.component
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -35,17 +37,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.domain.model.Habit
+import com.example.habitapp.domain.model.HabitCardState
 import java.time.LocalDate
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HabitItem(
     habit: Habit,
     todayStatus: DailyStatus?,
+    cardState: HabitCardState,
     onHabitClick: () -> Unit,
     onConfigureHabitClick: () -> Unit,
     onStatusSelected: (DailyStatus) -> Unit,
@@ -69,8 +75,7 @@ fun HabitItem(
     LaunchedEffect(revealed) {
         dragOffset = if (revealed) -revealWidth else 0f
     }
-    val isPendingDate = LocalDate.now() == habit.nextPendingDate
-
+    val isActive = cardState == HabitCardState.READY
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -95,8 +100,9 @@ fun HabitItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(85.dp)
-                .alpha(if (isPendingDate) 1f else 0.5f)
-                .offset {
+                .alpha(
+                    if (cardState == HabitCardState.NEEDS_REVIEW) 0.5f else 1f
+                )                .offset {
                     IntOffset(
                         x = dragOffset.roundToInt(),
                         y = 0
@@ -139,12 +145,21 @@ fun HabitItem(
             ) {
                 Text(
                     text = habit.name,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        textDecoration = if (
+                            cardState == HabitCardState.COMPLETED_TODAY
+                        ) {
+                            TextDecoration.LineThrough
+                        } else {
+                            TextDecoration.None
+                        }
+                    )
                 )
 
                 DailyStatusCircle(
                     status = todayStatus,
-                    modifier = Modifier.clickable(enabled = isPendingDate) {
+                    modifier = Modifier.clickable(enabled = isActive) {
                         if (!habit.isConfigured) {
                             onConfigureHabitClick()
                         } else {

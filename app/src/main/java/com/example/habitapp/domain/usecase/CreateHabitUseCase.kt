@@ -20,7 +20,8 @@ class CreateHabitUseCase @Inject constructor(
             "نام عادت نمی‌تواند خالی باشد."
         }
 
-        val startDate = LocalDate.now()
+        val startDate = LocalDate.now().minusDays(2)
+      //  val startDate = LocalDate.now()
 
         val habit = Habit(
             id = 0L,

@@ -1,165 +1,124 @@
 package com.example.habitapp.domain.usecase
 
+
 import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.domain.model.Habit
+import com.example.habitapp.domain.repository.HabitRepository
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertThrows
-import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
 
 class SetDailyStatusUseCaseTest {
 
-    private lateinit var repository: FakeHabitRepository
-    private lateinit var useCase: SetDailyStatusUseCase
+    private val repository = mockk<HabitRepository>()
+    private val useCase = SetDailyStatusUseCase(repository)
 
     private val today = LocalDate.now()
+    private val habitId = 1L
 
-    private val habit = Habit(
-        id = 1L,
+    private fun createHabit(
+        nextPendingDate: LocalDate
+    ) = Habit(
+        id = habitId,
         name = "مطالعه",
-        startDate = today.minusDays(10),
-        normal = "10 دقیقه",
-        special = "5 دقیقه",
-        emergency = "2 دقیقه",
-        finalGoal = "60 دقیقه",
-        cycleNumber = 1
+        startDate = today.minusDays(5),
+        normal = "۲۰ دقیقه",
+        special = "۴۰ دقیقه",
+        emergency = "۵ دقیقه",
+        finalGoal = "مطالعه روزانه",
+        cycleNumber = 1,
+        nextPendingDate = nextPendingDate
     )
 
-    @Before
-    fun setup() {
-        repository = FakeHabitRepository()
-        useCase = SetDailyStatusUseCase(repository)
-
+    @Test
+    fun `rejects today when a previous day is unresolved`() =
         runBlocking {
-            repository.insertHabit(habit)
-        }
-    }
+            coEvery {
+                repository.getHabitById(habitId)
+            } returns createHabit(today.minusDays(1))
 
-    @Test
-    fun `today NORMAL should be saved`() = runBlocking {
+            coEvery {
+                repository.getHabitDay(habitId, today)
+            } returns null
 
-        useCase(
-            habitId = 1L,
-            date = today,
-            status = DailyStatus.NORMAL
-        )
-
-        val savedDay = repository.getHabitDay(
-            habitId = 1L,
-            date = today
-        )
-
-        assertEquals(
-            DailyStatus.NORMAL,
-            savedDay?.status
-        )
-    }
-
-    @Test
-    fun `yesterday FAILED should be saved`() = runBlocking {
-
-        val yesterday = today.minusDays(1)
-
-        useCase(
-            habitId = 1L,
-            date = yesterday,
-            status = DailyStatus.FAILED
-        )
-
-        val savedDay = repository.getHabitDay(
-            habitId = 1L,
-            date = yesterday
-        )
-
-        assertEquals(
-            DailyStatus.FAILED,
-            savedDay?.status
-        )
-    }
-
-    @Test
-    fun `today FAILED should be rejected`() {
-
-        assertThrows(IllegalArgumentException::class.java) {
-
-            runBlocking {
+            try {
                 useCase(
-                    habitId = 1L,
+                    habitId = habitId,
                     date = today,
-                    status = DailyStatus.FAILED
-                )
-            }
-        }
-    }
-
-    @Test
-    fun `day before yesterday FAILED should be saved`() = runBlocking {
-
-        val dayBeforeYesterday = today.minusDays(2)
-
-        useCase(
-            habitId = 1L,
-            date = dayBeforeYesterday,
-            status = DailyStatus.FAILED
-        )
-
-        val savedDay = repository.getHabitDay(
-            habitId = 1L,
-            date = dayBeforeYesterday
-        )
-
-        assertEquals(
-            DailyStatus.FAILED,
-            savedDay?.status
-        )
-    }
-
-    @Test
-    fun `four days ago should be rejected`() {
-
-        assertThrows(IllegalArgumentException::class.java) {
-
-            runBlocking {
-                useCase(
-                    habitId = 1L,
-                    date = today.minusDays(4),
                     status = DailyStatus.NORMAL
                 )
+                throw AssertionError(
+                    "Expected IllegalArgumentException"
+                )
+            } catch (e: IllegalArgumentException) {
+                assertEquals(
+                    "You must register the previous days first.",
+                    e.message
+                )
+            }
+
+            coVerify(exactly = 0) {
+                repository.saveHabitDay(any())
             }
         }
-    }
 
     @Test
-    fun `future date should be rejected`() {
+    fun `registers next pending date and advances it`() =
+        runBlocking {
+            val habit = createHabit(today)
 
-        assertThrows(IllegalArgumentException::class.java) {
+            coEvery {
+                repository.getHabitById(habitId)
+            } returns habit
 
-            runBlocking {
-                useCase(
-                    habitId = 1L,
-                    date = today.plusDays(1),
-                    status = DailyStatus.NORMAL
+            coEvery {
+                repository.getHabitDay(habitId, today)
+            } returns null
+
+            coEvery {
+                repository.saveHabitDay(any())
+            } returns Unit
+
+            coEvery {
+                repository.updateHabit(any())
+            } returns Unit
+
+            useCase(
+                habitId = habitId,
+                date = today,
+                status = DailyStatus.NORMAL
+            )
+
+            coVerify {
+                repository.saveHabitDay(
+                    match {
+                        it.habitId == habitId &&
+                                it.date == today &&
+                                it.status == DailyStatus.NORMAL
+                    }
+                )
+            }
+
+            coVerify {
+                repository.updateHabit(
+                    match {
+                        it.nextPendingDate == today.plusDays(1)
+                    }
                 )
             }
         }
-    }
 
-    @Test
-    fun `date before habit start date should be rejected`() {
-
-        val beforeStartDate = habit.startDate.minusDays(1)
-
-        assertThrows(IllegalArgumentException::class.java) {
-
-            runBlocking {
-                useCase(
-                    habitId = 1L,
-                    date = beforeStartDate,
-                    status = DailyStatus.NORMAL
-                )
-            }
+    @Test(expected = IllegalArgumentException::class)
+    fun `rejects FAILED status for today`() =
+        runBlocking {
+            useCase(
+                habitId = habitId,
+                date = today,
+                status = DailyStatus.FAILED
+            )
         }
-    }
 }

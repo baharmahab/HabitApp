@@ -39,4 +39,6 @@ interface HabitRepository {
     fun observeTodayHabitDays(
         date: LocalDate
     ): Flow<List<HabitDay>>
+    // مشاهده زنده فهرست عادت‌ها
+    fun observeHabits(): Flow<List<Habit>>
 }

@@ -32,6 +32,7 @@ data class HabitDetailUiState @RequiresApi(Build.VERSION_CODES.O) constructor(
 
     val editingField: EditingField? = null,
     val editingValue: String = "",
+    val nextPendingDate: LocalDate = LocalDate.now(),
 
     val error: String? = null
 )

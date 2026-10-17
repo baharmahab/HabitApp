@@ -141,6 +141,7 @@ private fun HabitDetailContent(
 
         HabitDayGrid(
             startDate = uiState.startDate,
+            nextPendingDate = uiState.nextPendingDate,
             dailyStatuses = uiState.dailyStatuses,
             onDayClick = { date ->
                 selectedDate = date
@@ -149,21 +150,11 @@ private fun HabitDetailContent(
 
         selectedDate?.let { date ->
 
-            val daysDifference = ChronoUnit.DAYS.between(
-                date,
-                LocalDate.now()
-            )
-
             DailyStatusDialog(
-                allowFailed = daysDifference in 1..2,
+                allowFailed = date.isBefore(LocalDate.now()),
 
                 onStatusSelected = { status ->
-
-                    onSetDailyStatus(
-                        date,
-                        status
-                    )
-
+                    onSetDailyStatus(date, status)
                     selectedDate = null
                 },
 

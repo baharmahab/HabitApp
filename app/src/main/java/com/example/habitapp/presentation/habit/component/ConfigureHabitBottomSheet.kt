@@ -69,7 +69,7 @@ fun ConfigureHabitBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.60f)
+                .fillMaxHeight(0.90f)
                 .imePadding()
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 16.dp)

@@ -97,5 +97,10 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     implementation("androidx.compose.material:material-icons-extended")
 
+    androidTestImplementation(libs.mockk.android)
+    androidTestImplementation(libs.mockk.agent)
+    testImplementation(libs.mockk.android)
+    testImplementation(libs.mockk.agent)
+
 
 }

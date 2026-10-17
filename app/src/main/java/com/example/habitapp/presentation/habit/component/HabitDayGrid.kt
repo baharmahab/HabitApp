@@ -27,11 +27,11 @@ import java.time.temporal.ChronoUnit
 @Composable
 fun HabitDayGrid(
     startDate: LocalDate,
+    nextPendingDate: LocalDate,
     dailyStatuses: Map<LocalDate, DailyStatus?> = emptyMap(),
     onDayClick: (LocalDate) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val today = LocalDate.now()
 
     val days = (0 until 40).map { offset ->
         startDate.plusDays(offset.toLong())
@@ -80,13 +80,12 @@ fun HabitDayGrid(
 
                         } else {
 
-                            val daysDifference = ChronoUnit.DAYS.between(
-                                date,
-                                today
-                            )
+                            val isAlreadyRegistered = dailyStatuses[date] != null
+                            val isNextPendingDate = date == nextPendingDate
+                            val isNotFutureDate = !date.isAfter(LocalDate.now())
 
-                            val isEditable =
-                                daysDifference in 0..2
+                            val isEditable = isNotFutureDate &&
+                                    (isAlreadyRegistered || isNextPendingDate)
 
                             HabitDayCell(
                                 date = date,

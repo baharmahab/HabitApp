@@ -101,4 +101,11 @@ class HabitRepositoryImpl @Inject constructor(
                 entities.map { it.toDomain() }
             }
     }
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun observeHabits(): Flow<List<Habit>> {
+        return habitDao.getAllHabits()
+            .map { entities ->
+                entities.map { it.toDomain() }
+            }
+    }
 }

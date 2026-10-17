@@ -64,6 +64,7 @@ class HabitDetailViewModel @Inject constructor(
                     isLoading = false,
                     habitName = habit.name,
                     startDate = habit.startDate,
+                    nextPendingDate = habit.nextPendingDate,
                     normal = habit.normal,
                     special = habit.special,
                     emergency = habit.emergency,
@@ -198,16 +199,15 @@ class HabitDetailViewModel @Inject constructor(
                     date = date,
                     status = status
                 )
+                val updatedHabit = getHabitByIdUseCase(habit.id)
+                    ?: throw IllegalArgumentException("Habit not found.")
 
-                // اینجا دیگر dailyStatuses را دستی تغییر نمی‌دهیم.
-                //
-                // Room تغییر می‌کند
-                //      ↓
-                // Flow تغییر می‌کند
-                //      ↓
-                // observeHabitDaysUseCase
-                //      ↓
-                // dailyStatuses به‌روزرسانی می‌شود.
+                currentHabit = updatedHabit
+
+                _uiState.value = _uiState.value.copy(
+                    nextPendingDate = updatedHabit.nextPendingDate,
+                    error = null
+                )
 
                 _uiState.value = _uiState.value.copy(
                     error = null

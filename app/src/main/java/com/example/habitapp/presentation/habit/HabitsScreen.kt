@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.habitapp.domain.model.Habit
+import com.example.habitapp.domain.model.HabitCardState
 import com.example.habitapp.presentation.habit.component.AddHabitBottomSheet
 import com.example.habitapp.presentation.habit.component.ConfigureHabitBottomSheet
 import com.example.habitapp.presentation.habit.component.DeleteHabitBottomSheet
@@ -136,7 +137,8 @@ fun HabitsScreen(
                         HabitItem(
                             habit = habit,
                             todayStatus = uiState.todayStatuses[habit.id],
-
+                            cardState = uiState.habitCardStates[habit.id]
+                                ?: HabitCardState.READY,
                             onHabitClick = {
                                 revealedHabitId = null
 
