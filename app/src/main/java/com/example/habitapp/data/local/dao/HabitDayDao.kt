@@ -56,4 +56,9 @@ interface HabitDayDao {
     fun observeTodayHabitDays(
         date: String
     ): Flow<List<HabitDayEntity>>
+
+
+    @Query("DELETE FROM habit_days WHERE habitId = :habitId")
+    suspend fun deleteHabitDaysByHabitId(habitId: Long)
+
 }

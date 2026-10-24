@@ -2,6 +2,8 @@ package com.example.habitapp.data.repository
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.room.withTransaction
+import com.example.habitapp.data.local.AppDatabase
 import com.example.habitapp.data.local.dao.HabitDao
 import com.example.habitapp.data.local.dao.HabitDayDao
 import com.example.habitapp.data.mapper.toDomain
@@ -17,7 +19,8 @@ import kotlinx.coroutines.flow.map
 
 class HabitRepositoryImpl @Inject constructor(
     private val habitDao: HabitDao,
-    private val habitDayDao: HabitDayDao
+    private val habitDayDao: HabitDayDao,
+    private val database: AppDatabase
 ) : HabitRepository {
 
     override suspend fun insertHabit(habit: Habit) {
@@ -107,5 +110,25 @@ class HabitRepositoryImpl @Inject constructor(
             .map { entities ->
                 entities.map { it.toDomain() }
             }
+    }
+
+    override suspend fun restartHabitCycle(
+        habitId: Long,
+        newStartDate: LocalDate
+    ) {
+        database.withTransaction {
+            val habit = habitDao.getHabitById(habitId)
+                ?: throw IllegalArgumentException("Habit not found.")
+
+            habitDayDao.deleteHabitDaysByHabitId(habitId)
+
+            habitDao.updateHabit(
+                habit.copy(
+                    startDate = newStartDate.toString(),
+                    nextPendingDate = newStartDate.toString(),
+                    cycleNumber = 1
+                )
+            )
+        }
     }
 }

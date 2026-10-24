@@ -18,14 +18,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.habitapp.core.CalendarLocalePolicy
+import com.example.habitapp.core.JalaliDateConverter
 import com.example.habitapp.ui.theme.AppOutline
 import com.example.habitapp.ui.theme.GreenPrimaryContainer
 import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -38,6 +43,9 @@ fun WeekDayItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isPersian = CalendarLocalePolicy.isPersian()
+    val locale = LocalConfiguration.current.locales[0] ?: Locale.getDefault()
+
     val isToday = date == today
 
     val textColor = if (selected) {
@@ -52,27 +60,49 @@ fun WeekDayItem(
         FontWeight.Normal
     }
 
+    val dayName = date.dayOfWeek.getDisplayName(
+        TextStyle.SHORT,
+        locale
+    )
+    /*
+    * val dayName = stringResource(
+        id = when (date.dayOfWeek) {
+            DayOfWeek.SATURDAY -> R.string.weekday_saturday_short
+            DayOfWeek.SUNDAY -> R.string.weekday_sunday_short
+            DayOfWeek.MONDAY -> R.string.weekday_monday_short
+            DayOfWeek.TUESDAY -> R.string.weekday_tuesday_short
+            DayOfWeek.WEDNESDAY -> R.string.weekday_wednesday_short
+            DayOfWeek.THURSDAY -> R.string.weekday_thursday_short
+            DayOfWeek.FRIDAY -> R.string.weekday_friday_short
+        }
+    )*/
+
+    val dayNumber = if (isPersian) {
+        JalaliDateConverter.formatDay(date)
+    } else {
+        date.dayOfMonth.toString()
+    }
+
     Column(
         modifier = modifier
-            //.weight(1f)
             .height(72.dp)
+            .clip(RoundedCornerShape(60))
             .background(
                 color = if (selected) {
                     GreenPrimaryContainer
                 } else {
                     Color.Transparent
-                },
-                shape = RoundedCornerShape(60)
+                }
             )
             .clickable(onClick = onClick)
             .padding(vertical = 7.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = getPersianDayShortName(date.dayOfWeek),
+            text = dayName,
             color = textColor,
-            fontSize = 18.sp,
-            fontWeight = Bold
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
         )
 
         if (showDate) {
@@ -102,10 +132,10 @@ fun WeekDayItem(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = date.dayOfMonth.toString(),
+                    text = dayNumber,
                     color = textColor,
-                    fontSize = 12.sp,
-                    fontWeight = fontWeight
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }

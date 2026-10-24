@@ -37,9 +37,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.example.habitapp.R
 import kotlin.math.roundToInt
 import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.domain.model.Habit
@@ -208,7 +210,7 @@ private fun DeleteHabitCard(
         ) {
             Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = "حذف عادت",
+                contentDescription = stringResource(R.string.delete_habit),
                 tint = Color.White,
                 modifier = Modifier.size(24.dp)
             )
@@ -216,7 +218,7 @@ private fun DeleteHabitCard(
             Spacer(modifier = Modifier.size(4.dp))
 
             Text(
-                text = "حذف",
+                text = stringResource(R.string.delete),
                 color = Color.White,
                 style = MaterialTheme.typography.labelMedium
             )

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ================================================== -->
+    <!-- App -->
+    <!-- ================================================== -->
+
+    <string name="app_name">HabitApp</string>
+
+
+    <!-- ================================================== -->
+    <!-- Habit List -->
+    <!-- ================================================== -->
+
+    <string name="loading">در حال بارگذاری...</string>
+    <string name="default_habit_name">این عادت</string>
+    <string name="create_habit">ایجاد عادت</string>
+    <string name="continue_habit">ادامه عادت</string>
+
+
+    <!-- ================================================== -->
+    <!-- Create Habit -->
+    <!-- ================================================== -->
+
+    <string name="habit_name">نام عادت</string>
+    <string name="cancel">انصراف</string>
+
+
+    <!-- ================================================== -->
+    <!-- Delete Habit -->
+    <!-- ================================================== -->
+
+    <string name="delete_habit">حذف عادت</string>
+    <string name="delete">حذف</string>
+    <string name="delete_habit_confirmation_title">از حذف این عادت مطمئنی؟</string>
+    <string name="delete_habit_confirmation_message">با حذف عادت، سابقهٔ پیشرفت و اطلاعات ثبت‌شدهٔ آن ممکن است از دست برود.</string>
+
+
+    <!-- ================================================== -->
+    <!-- Initial Habit Setup -->
+    <!-- ================================================== -->
+
+    <string name="initial_habit_setup">تنظیم اولیه عادت</string>
+    <string name="habit_setup_description">برای شروع، سه وضعیت روزانه را مشخص کن. هدف نهایی اختیاری است.</string>
+    <string name="close">بستن</string>
+
+
+    <!-- ================================================== -->
+    <!-- Habit Status Configuration -->
+    <!-- ================================================== -->
+
+    <string name="normal_status">عالی</string>
+    <string name="normal_status_hint">حداقل کار قابل انجام در شرایط عادی</string>
+
+    <string name="special_status">خوب</string>
+    <string name="special_status_hint">حداقل کار قابل انجام در شرایط سخت</string>
+
+    <string name="emergency_status">متوسط</string>
+    <string name="emergency_status_hint">حداقل کار قابل انجام در شرایط خیلی سخت</string>
+
+
+    <!-- ================================================== -->
+    <!-- Final Goal -->
+    <!-- ================================================== -->
+
+    <string name="final_goal_optional">هدف نهایی (اختیاری)</string>
+    <string name="final_goal_hint">هدف نهایی عادت</string>
+
+
+    <!-- ================================================== -->
+    <!-- Actions -->
+    <!-- ================================================== -->
+
+    <string name="save">ذخیره</string>
+    <string name="save_settings">ذخیره تنظیمات</string>
+    <string name="edit">ویرایش</string>
+
+
+    <!-- ================================================== -->
+    <!-- Calendar: Weekday Labels -->
+    <!-- ترتیب منطقی روزها مستقل از جهت نمایش تقویم است. -->
+    <!-- ================================================== -->
+
+    <string name="weekday_saturday_short">ش</string>
+    <string name="weekday_sunday_short">ی</string>
+    <string name="weekday_monday_short">د</string>
+    <string name="weekday_tuesday_short">س</string>
+    <string name="weekday_wednesday_short">چ</string>
+    <string name="weekday_thursday_short">پ</string>
+    <string name="weekday_friday_short">ج</string>
+
+
+    <!-- ================================================== -->
+    <!-- Formatting -->
+    <!-- ================================================== -->
+
+    <string name="field_value_format">%1$s: %2$s</string>
+
+    <string name="cycle_progress_title">پیشرفت چرخه عادت</string>
+    <string name="cycle_day_of_total">از %1$d روز</string>
+    <string name="cycle_progress_percent">%1$d%%</string>
+    <string name="cycle_progress_description">%1$d%% از دوره سپری شده است.</string>
+
+
+</resources>

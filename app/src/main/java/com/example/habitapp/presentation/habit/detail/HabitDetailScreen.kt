@@ -30,7 +30,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.presentation.habit.component.DailyStatusDialog
 import com.example.habitapp.presentation.habit.component.EditableHabitRow
+import com.example.habitapp.presentation.habit.component.HabitCycleProgress
 import com.example.habitapp.presentation.habit.component.HabitDayGrid
+import com.example.habitapp.presentation.habit.component.RestartCycleBottomSheet
 import com.example.habitapp.presentation.habit.component.WeekDaysRow
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -101,6 +103,7 @@ fun HabitDetailScreen(
                     onSaveEdit = viewModel::saveEditingField,
                     onCancelEdit = viewModel::cancelEditing,
                     onSetDailyStatus = viewModel::setDailyStatus,
+                    onRestartCycle = viewModel::restartHabitCycle,
                     modifier = Modifier.padding(innerPadding)
                 )
             }
@@ -118,19 +121,27 @@ private fun HabitDetailContent(
     onSaveEdit: () -> Unit,
     onCancelEdit: () -> Unit,
     onSetDailyStatus: (LocalDate, DailyStatus) -> Unit,
-    modifier: Modifier = Modifier
+    onRestartCycle: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var selectedDate by remember {
         mutableStateOf<LocalDate?>(null)
+    }
+    var showRestartSheet by remember {
+        mutableStateOf(false)
     }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(5.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
+        HabitCycleProgress(
+            currentDay = 12,
+            totalDays = 40
+        )
 
         WeekDaysRow(
             selectedDate = LocalDate.now(),
@@ -149,21 +160,22 @@ private fun HabitDetailContent(
         )
 
         selectedDate?.let { date ->
-
             DailyStatusDialog(
                 allowFailed = date.isBefore(LocalDate.now()),
-
                 onStatusSelected = { status ->
-                    onSetDailyStatus(date, status)
                     selectedDate = null
-                },
 
+                    if (status == DailyStatus.FAILED) {
+                        showRestartSheet = true
+                    } else {
+                        onSetDailyStatus(date, status)
+                    }
+                },
                 onDismiss = {
                     selectedDate = null
                 }
             )
         }
-
         Text(
             text = "تنظیمات عادت",
             style = MaterialTheme.typography.titleLarge
@@ -224,6 +236,17 @@ private fun HabitDetailContent(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
+    }
+    if (showRestartSheet) {
+        RestartCycleBottomSheet(
+            onConfirmRestart = {
+                showRestartSheet = false
+                onRestartCycle()
+            },
+            onDismiss = {
+                showRestartSheet = false
+            }
+        )
     }
 }
 

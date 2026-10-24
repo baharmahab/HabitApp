@@ -41,4 +41,9 @@ interface HabitRepository {
     ): Flow<List<HabitDay>>
     // مشاهده زنده فهرست عادت‌ها
     fun observeHabits(): Flow<List<Habit>>
+
+    suspend fun restartHabitCycle(
+        habitId: Long,
+        newStartDate: LocalDate
+    )
 }

@@ -1,3 +1,4 @@
+
 package com.example.habitapp.presentation.habit.component
 
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.habitapp.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,16 +36,14 @@ fun AddHabitBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
             Text(
-                text = "ایجاد عادت"
+                text = stringResource(R.string.create_habit)
             )
 
             OutlinedTextField(
@@ -51,7 +52,9 @@ fun AddHabitBottomSheet(
                     name = it
                 },
                 label = {
-                    Text("نام عادت")
+                    Text(
+                        stringResource(R.string.habit_name)
+                    )
                 },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -59,21 +62,23 @@ fun AddHabitBottomSheet(
 
             Button(
                 onClick = {
-                    onCreateHabit(
-                        name.trim()
-                    )
+                    onCreateHabit(name.trim())
                 },
                 enabled = canCreate,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("ایجاد عادت")
+                Text(
+                    stringResource(R.string.create_habit)
+                )
             }
 
             TextButton(
                 onClick = onDismiss,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("انصراف")
+                Text(
+                    stringResource(R.string.cancel)
+                )
             }
         }
     }

@@ -1,5 +1,5 @@
-package com.example.habitapp.presentation.habit.component
 
+package com.example.habitapp.presentation.habit.component
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -12,9 +12,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
-import com.example.habitapp.presentation.habit.component.WeekDaysRow
+import com.example.habitapp.core.JalaliDateConverter
 import com.example.habitapp.ui.theme.TopBarBackground
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -31,6 +33,21 @@ fun HabitsTopBar(
     onDateSelected: (LocalDate) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val configuration = LocalConfiguration.current
+    val isPersian = configuration.locales[0].language == "fa"
+
+    val formattedDate = if (isPersian) {
+        JalaliDateConverter.formatDate(selectedDate)
+    } else {
+        selectedDate.format(HeaderDateFormatter)
+    }
+
+    val textDirection = if (isPersian) {
+        TextDirection.Rtl
+    } else {
+        TextDirection.Ltr
+    }
+
     Surface(
         modifier = modifier
             .fillMaxWidth(),
@@ -42,7 +59,7 @@ fun HabitsTopBar(
                 .height(180.dp)
         ) {
             Text(
-                text = selectedDate.format(HeaderDateFormatter),
+                text = formattedDate,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
@@ -50,7 +67,9 @@ fun HabitsTopBar(
                         bottom = 12.dp
                     ),
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    textDirection = textDirection
+                ),
                 color = MaterialTheme.colorScheme.onSurface
             )
 

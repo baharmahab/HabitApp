@@ -2,8 +2,10 @@ package com.example.habitapp.core
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import java.text.NumberFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun getDayNumber(date: LocalDate): Int {
@@ -16,4 +18,11 @@ fun getDayNumber(date: LocalDate): Int {
         DayOfWeek.THURSDAY -> 5
         DayOfWeek.FRIDAY -> 6
     }
+
+}
+fun formatDayNumber(
+    day: Int,
+    locale: Locale
+): String {
+    return NumberFormat.getInstance(locale).format(day)
 }

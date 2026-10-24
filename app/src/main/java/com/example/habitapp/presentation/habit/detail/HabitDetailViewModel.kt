@@ -8,6 +8,7 @@ import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.domain.model.Habit
 import com.example.habitapp.domain.usecase.GetHabitByIdUseCase
 import com.example.habitapp.domain.usecase.ObserveHabitDaysUseCase
+import com.example.habitapp.domain.usecase.RestartHabitCycleUseCase
 import com.example.habitapp.domain.usecase.SetDailyStatusUseCase
 import com.example.habitapp.domain.usecase.UpdateHabitUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,7 +26,8 @@ class HabitDetailViewModel @Inject constructor(
     private val getHabitByIdUseCase: GetHabitByIdUseCase,
     private val updateHabitUseCase: UpdateHabitUseCase,
     private val setDailyStatusUseCase: SetDailyStatusUseCase,
-    private val observeHabitDaysUseCase: ObserveHabitDaysUseCase
+    private val observeHabitDaysUseCase: ObserveHabitDaysUseCase,
+    private val restartHabitCycleUseCase: RestartHabitCycleUseCase
 ) : ViewModel() {
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -217,6 +219,43 @@ class HabitDetailViewModel @Inject constructor(
 
                 _uiState.value = _uiState.value.copy(
                     error = e.message ?: "ثبت وضعیت انجام نشد."
+                )
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun restartHabitCycle() {
+        val habit = currentHabit ?: return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                error = null
+            )
+
+            try {
+                restartHabitCycleUseCase(
+                    habitId = habit.id,
+                    newStartDate = LocalDate.now()
+                )
+
+                val updatedHabit = getHabitByIdUseCase(habit.id)
+                    ?: throw IllegalArgumentException("Habit not found.")
+
+                currentHabit = updatedHabit
+
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    startDate = updatedHabit.startDate,
+                    nextPendingDate = updatedHabit.nextPendingDate,
+                    dailyStatuses = emptyMap(),
+                    error = null
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "شروع دوباره چله انجام نشد."
                 )
             }
         }

@@ -1,6 +1,8 @@
+
 package com.example.habitapp.presentation.habit.component
 
-
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,9 +30,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.habitapp.R
 import com.example.habitapp.domain.model.Habit
+import java.time.LocalDate
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigureHabitBottomSheet(
@@ -42,12 +48,15 @@ fun ConfigureHabitBottomSheet(
     var normal by remember(habit.id) {
         mutableStateOf(habit.normal)
     }
+
     var special by remember(habit.id) {
         mutableStateOf(habit.special)
     }
+
     var emergency by remember(habit.id) {
         mutableStateOf(habit.emergency)
     }
+
     var finalGoal by remember(habit.id) {
         mutableStateOf(habit.finalGoal)
     }
@@ -80,7 +89,7 @@ fun ConfigureHabitBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "تنظیم اولیه عادت",
+                    text = stringResource(R.string.initial_habit_setup),
                     style = MaterialTheme.typography.titleLarge
                 )
 
@@ -88,7 +97,7 @@ fun ConfigureHabitBottomSheet(
                     onClick = onDismiss,
                     enabled = !isSaving
                 ) {
-                    Text("بستن")
+                    Text(stringResource(R.string.close))
                 }
             }
 
@@ -103,8 +112,7 @@ fun ConfigureHabitBottomSheet(
             Spacer(Modifier.height(8.dp))
 
             Text(
-                text = "برای شروع، سه وضعیت روزانه را مشخص کن. " +
-                        "هدف نهایی اختیاری است.",
+                text = stringResource(R.string.habit_setup_description),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -122,9 +130,11 @@ fun ConfigureHabitBottomSheet(
                     value = normal,
                     onValueChange = { normal = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Normal *") },
+                    label = {
+                        Text(stringResource(R.string.normal_status) + " *")
+                    },
                     placeholder = {
-                        Text("وضعیت عادی انجام عادت")
+                        Text(stringResource(R.string.normal_status_hint))
                     },
                     singleLine = false,
                     enabled = !isSaving
@@ -134,9 +144,11 @@ fun ConfigureHabitBottomSheet(
                     value = special,
                     onValueChange = { special = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Special *") },
+                    label = {
+                        Text(stringResource(R.string.special_status) + " *")
+                    },
                     placeholder = {
-                        Text("وضعیت بهتر یا ویژه")
+                        Text(stringResource(R.string.special_status_hint))
                     },
                     singleLine = false,
                     enabled = !isSaving
@@ -146,9 +158,11 @@ fun ConfigureHabitBottomSheet(
                     value = emergency,
                     onValueChange = { emergency = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Emergency *") },
+                    label = {
+                        Text(stringResource(R.string.emergency_status) + " *")
+                    },
                     placeholder = {
-                        Text("حداقل کار قابل انجام در شرایط سخت")
+                        Text(stringResource(R.string.emergency_status_hint))
                     },
                     singleLine = false,
                     enabled = !isSaving
@@ -158,9 +172,11 @@ fun ConfigureHabitBottomSheet(
                     value = finalGoal,
                     onValueChange = { finalGoal = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Final Goal (اختیاری)") },
+                    label = {
+                        Text(stringResource(R.string.final_goal_optional))
+                    },
                     placeholder = {
-                        Text("هدف نهایی عادت")
+                        Text(stringResource(R.string.final_goal_hint))
                     },
                     singleLine = false,
                     enabled = !isSaving
@@ -180,6 +196,7 @@ fun ConfigureHabitBottomSheet(
             Button(
                 onClick = {
                     val updatedHabit = habit.copy(
+                        startDate = LocalDate.now(),
                         normal = normal.trim(),
                         special = special.trim(),
                         emergency = emergency.trim(),
@@ -207,7 +224,7 @@ fun ConfigureHabitBottomSheet(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("ذخیره تنظیمات")
+                    Text(stringResource(R.string.save_settings))
                 }
             }
         }
