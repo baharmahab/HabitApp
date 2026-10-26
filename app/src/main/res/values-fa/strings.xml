@@ -130,5 +130,11 @@
     <string name="habit_goal_hint">چیزی که می‌خواهم در بلندمدت به آن برسم</string>
 
     <string name="habit_value_empty">هنوز تعریف نشده؛ برای افزودن لمس کن</string>
+    <string name="cycle_completion_sheet_title">چله‌ات به پایان رسید! 🌱</string>
+    <string name="cycle_completion_sheet_message">۴۰ روز تلاش و استمرار را پشت سر گذاشتی. این موفقیت ارزش جشن گرفتن دارد.</string>
+    <string name="next_cycle_title">فردا، شروعی تازه</string>
+    <string name="next_cycle_message">چلهٔ بعدی بدون فاصله آغاز می‌شود. پیش از شروع، می‌توانی تنظیمات عادتت را بازبینی کنی.</string>
+    <string name="keep_previous_settings">تنظیمات قبلی را نگه می‌دارم</string>
+    <string name="review_habit_settings">تنظیمات را بازبینی می‌کنم</string>
 
 </resources>

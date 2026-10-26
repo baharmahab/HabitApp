@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.update
 
 @HiltViewModel
 class HabitDetailViewModel @Inject constructor(
@@ -216,16 +217,11 @@ class HabitDetailViewModel @Inject constructor(
 
                 val completedSummary = when (result) {
                     SetDailyStatusResult.StatusSaved -> {
-                        _uiState.value.completedCycleSummary
+                        null
                     }
 
-                    SetDailyStatusResult.CycleCompleted -> {
-                        getHabitCycleSummaryUseCase(
-                            habitId = habit.id,
-                            cycleNumber = habit.cycleNumber
-                        ) ?: throw IllegalStateException(
-                            "خلاصهٔ چلهٔ تکمیل‌شده پیدا نشد."
-                        )
+                    is SetDailyStatusResult.CycleCompleted -> {
+                        result.summary
                     }
                 }
                 val updatedHabit = getHabitByIdUseCase(habit.id)
@@ -237,13 +233,11 @@ class HabitDetailViewModel @Inject constructor(
                     nextPendingDate = updatedHabit.nextPendingDate,
                     streakDays = calculateStreakDays(
                         startDate = updatedHabit.startDate,
-                        nextPendingDate = updatedHabit.nextPendingDate,
+                        nextPendingDate = updatedHabit.nextPendingDate
                     ),
                     completedCycleSummary = completedSummary,
-                    error = null
-                )
-
-                _uiState.value = _uiState.value.copy(
+                    showCycleCompletionSheet =
+                        result is SetDailyStatusResult.CycleCompleted,
                     error = null
                 )
 
@@ -304,5 +298,10 @@ class HabitDetailViewModel @Inject constructor(
             .between(startDate, nextPendingDate)
             .toInt()
             .coerceAtLeast(0)
+    }
+    fun dismissCycleCompletionSheet() {
+        _uiState.update {
+            it.copy(showCycleCompletionSheet = false)
+        }
     }
 }

@@ -178,33 +178,51 @@ class HabitRepositoryImpl @Inject constructor(
             completedAt = LocalDate.parse(entity.completedAt)
         )
     }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun saveDailyStatusAtomically(
         habitDay: HabitDay,
         updatedHabit: Habit,
         completedSummary: HabitCycleSummary?
     ) {
+        val habitDayEntity = habitDay.toEntity()
+        val habitEntity = updatedHabit.toEntity()
+
+        val summaryEntity = completedSummary?.let { summary ->
+            HabitCycleSummaryEntity(
+                habitId = summary.habitId,
+                cycleNumber = summary.cycleNumber,
+                startDate = summary.startDate.toString(),
+                endDate = summary.endDate.toString(),
+                normalCount = summary.normalCount,
+                specialCount = summary.specialCount,
+                emergencyCount = summary.emergencyCount,
+                failedCount = summary.failedCount,
+                completedAt = summary.completedAt.toString()
+            )
+        }
+
         database.withTransaction {
-            habitDayDao.upsertHabitDay(habitDay.toEntity())
+            // 1. ذخیره وضعیت روز
+            habitDayDao.upsertHabitDay(habitDayEntity)
 
-            habitDao.updateHabit(updatedHabit.toEntity())
+            // 2. ذخیره خلاصه چله، در صورت تکمیل
+            if (summaryEntity != null) {
+                habitCycleSummaryDao.insertSummary(summaryEntity)
+            }
 
+            // 3. به‌روزرسانی اطلاعات عادت
+            habitDao.updateHabit(habitEntity)
+
+            // 4. حذف جزئیات روزانه چله تکمیل‌شده
             if (completedSummary != null) {
-                val entity = HabitCycleSummaryEntity(
-                    habitId = completedSummary.habitId,
-                    cycleNumber = completedSummary.cycleNumber,
-                    startDate = completedSummary.startDate.toString(),
-                    endDate = completedSummary.endDate.toString(),
-                    normalCount = completedSummary.normalCount,
-                    specialCount = completedSummary.specialCount,
-                    emergencyCount = completedSummary.emergencyCount,
-                    failedCount = completedSummary.failedCount,
-                    completedAt = completedSummary.completedAt.toString()
+                habitDayDao.deleteHabitDaysByHabitId(
+                    habitDay.habitId
                 )
-
-                habitCycleSummaryDao.insertSummary(entity)
             }
         }
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun startNextHabitCycle(

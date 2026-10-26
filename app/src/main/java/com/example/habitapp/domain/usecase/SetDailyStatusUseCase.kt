@@ -1,3 +1,4 @@
+
 package com.example.habitapp.domain.usecase
 
 import android.os.Build
@@ -14,22 +15,23 @@ import javax.inject.Inject
 class SetDailyStatusUseCase @Inject constructor(
     private val repository: HabitRepository
 ) {
+
     @RequiresApi(Build.VERSION_CODES.O)
     suspend operator fun invoke(
         habitId: Long,
         date: LocalDate,
         status: DailyStatus
     ): SetDailyStatusResult {
-        val today = LocalDate.now()
-        val daysDifference = ChronoUnit.DAYS.between(date, today)
 
-        if (daysDifference < 0) {
+        val today = LocalDate.now()
+
+        if (date.isAfter(today)) {
             throw IllegalArgumentException(
                 "Cannot register status for a future date."
             )
         }
 
-        if (daysDifference == 0L && status == DailyStatus.FAILED) {
+        if (date == today && status == DailyStatus.FAILED) {
             throw IllegalArgumentException(
                 "Today cannot be marked as failed."
             )
@@ -40,18 +42,7 @@ class SetDailyStatusUseCase @Inject constructor(
 
         if (date.isBefore(habit.startDate)) {
             throw IllegalArgumentException(
-                "Cannot register status before the cycle start date."
-            )
-        }
-
-        val existingSummary = repository.getCycleSummary(
-            habitId = habitId,
-            cycleNumber = habit.cycleNumber
-        )
-
-        if (existingSummary != null) {
-            throw IllegalStateException(
-                "This cycle has already been completed."
+                "Cannot register status before the current cycle start date."
             )
         }
 
@@ -76,14 +67,6 @@ class SetDailyStatusUseCase @Inject constructor(
             )
         }
 
-        val updatedHabit = if (isNextPendingDate) {
-            habit.copy(
-                nextPendingDate = habit.nextPendingDate.plusDays(1)
-            )
-        } else {
-            habit
-        }
-
         val dayNumber = ChronoUnit.DAYS.between(
             habit.startDate,
             date
@@ -94,14 +77,13 @@ class SetDailyStatusUseCase @Inject constructor(
                     dayNumber == 40L &&
                     status != DailyStatus.FAILED
 
-        val summary = if (isCompletingCycle) {
+        val completedSummary = if (isCompletingCycle) {
             val previousDays = repository.getHabitDays(
                 habitId = habitId,
                 startDate = habit.startDate,
                 endDate = date
             )
 
-            // جایگزینی وضعیت همین روز برای جلوگیری از شمارش تکراری
             val daysForSummary = previousDays
                 .filterNot { it.date == date } + habitDay
 
@@ -128,14 +110,36 @@ class SetDailyStatusUseCase @Inject constructor(
             null
         }
 
+        val updatedHabit = when {
+            isCompletingCycle -> {
+                val nextCycleStartDate = date.plusDays(1)
+
+                habit.copy(
+                    startDate = nextCycleStartDate,
+                    nextPendingDate = nextCycleStartDate,
+                    cycleNumber = habit.cycleNumber + 1
+                )
+            }
+
+            isNextPendingDate -> {
+                habit.copy(
+                    nextPendingDate = habit.nextPendingDate.plusDays(1)
+                )
+            }
+
+            else -> habit
+        }
+
         repository.saveDailyStatusAtomically(
             habitDay = habitDay,
             updatedHabit = updatedHabit,
-            completedSummary = summary
+            completedSummary = completedSummary
         )
 
-        return if (isCompletingCycle) {
-            SetDailyStatusResult.CycleCompleted
+        return if (completedSummary != null) {
+            SetDailyStatusResult.CycleCompleted(
+                summary = completedSummary
+            )
         } else {
             SetDailyStatusResult.StatusSaved
         }

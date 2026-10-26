@@ -33,8 +33,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitapp.R
 import com.example.habitapp.domain.model.DailyStatus
+import com.example.habitapp.presentation.habit.component.CycleCompletedMessage
+import com.example.habitapp.presentation.habit.component.CycleCompletionBottomSheet
 import com.example.habitapp.presentation.habit.component.DailyStatusDialog
 import com.example.habitapp.presentation.habit.component.EditableHabitRow
 import com.example.habitapp.presentation.habit.component.HabitCalendarCard
@@ -111,6 +114,13 @@ fun HabitDetailScreen(
                     onCancelEdit = viewModel::cancelEditing,
                     onSetDailyStatus = viewModel::setDailyStatus,
                     onRestartCycle = viewModel::restartHabitCycle,
+                    onDismissCycleCompletionSheet =
+                        viewModel::dismissCycleCompletionSheet,
+                    onKeepSettings =
+                        viewModel::dismissCycleCompletionSheet,
+                    onReviewSettings = {
+                        viewModel.dismissCycleCompletionSheet()
+                    },
                     modifier = Modifier.padding(innerPadding)
                 )
             }
@@ -129,6 +139,9 @@ private fun HabitDetailContent(
     onCancelEdit: () -> Unit,
     onSetDailyStatus: (LocalDate, DailyStatus) -> Unit,
     onRestartCycle: () -> Unit,
+    onDismissCycleCompletionSheet: () -> Unit,
+    onKeepSettings: () -> Unit,
+    onReviewSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var selectedDate by remember {
@@ -136,6 +149,13 @@ private fun HabitDetailContent(
     }
     var showRestartSheet by remember {
         mutableStateOf(false)
+    }
+    if (uiState.showCycleCompletionSheet) {
+        CycleCompletionBottomSheet(
+            onDismiss = onDismissCycleCompletionSheet,
+            onKeepSettings = onKeepSettings,
+            onReviewSettings = onReviewSettings
+        )
     }
 
     Column(
@@ -151,6 +171,9 @@ private fun HabitDetailContent(
             modifier = Modifier.fillMaxWidth()
         )
 
+        if (uiState.completedCycleSummary != null) {
+            CycleCompletedMessage()
+        }
         HabitCalendarCard(
             startDate = uiState.startDate,
             nextPendingDate = uiState.nextPendingDate,

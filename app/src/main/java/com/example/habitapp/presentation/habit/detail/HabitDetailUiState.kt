@@ -36,6 +36,6 @@ data class HabitDetailUiState @RequiresApi(Build.VERSION_CODES.O) constructor(
     val nextPendingDate: LocalDate = LocalDate.now(),
     val streakDays: Int = 0,
     val completedCycleSummary: HabitCycleSummary? = null,
-
+    val showCycleCompletionSheet: Boolean = false,
     val error: String? = null
 )
