@@ -64,18 +64,6 @@ fun WeekDayItem(
         TextStyle.SHORT,
         locale
     )
-    /*
-    * val dayName = stringResource(
-        id = when (date.dayOfWeek) {
-            DayOfWeek.SATURDAY -> R.string.weekday_saturday_short
-            DayOfWeek.SUNDAY -> R.string.weekday_sunday_short
-            DayOfWeek.MONDAY -> R.string.weekday_monday_short
-            DayOfWeek.TUESDAY -> R.string.weekday_tuesday_short
-            DayOfWeek.WEDNESDAY -> R.string.weekday_wednesday_short
-            DayOfWeek.THURSDAY -> R.string.weekday_thursday_short
-            DayOfWeek.FRIDAY -> R.string.weekday_friday_short
-        }
-    )*/
 
     val dayNumber = if (isPersian) {
         JalaliDateConverter.formatDay(date)
@@ -85,7 +73,7 @@ fun WeekDayItem(
 
     Column(
         modifier = modifier
-            .height(72.dp)
+            .height(if(showDate) 72.dp else 40.dp )
             .clip(RoundedCornerShape(60))
             .background(
                 color = if (selected) {

@@ -40,31 +40,32 @@
     <!-- Initial Habit Setup -->
     <!-- ================================================== -->
 
-    <string name="initial_habit_setup">تنظیم اولیه عادت</string>
-    <string name="habit_setup_description">برای شروع، سه وضعیت روزانه را مشخص کن. هدف نهایی اختیاری است.</string>
+    <!-- Initial habit setup -->
+    <string name="initial_habit_setup">ساختن برنامهٔ شخصی عادت</string>
+    <string name="habit_setup_description">برای روزهای مختلف زندگی‌ات، برنامه‌ای متناسب با شرایط خودت بساز.</string>
     <string name="close">بستن</string>
 
+    <!-- Personal plan -->
+    <string name="habit_plan_title">برنامهٔ شخصی من</string>
+    <string name="habit_plan_subtitle">سه راه برای ادامه دادن؛ متناسب با حال و شرایط هر روز</string>
 
-    <!-- ================================================== -->
-    <!-- Habit Status Configuration -->
-    <!-- ================================================== -->
+    <string name="normal_status">برنامهٔ عادی</string>
+    <string name="normal_status_hint">کاری که در یک روز معمولی می‌خواهم انجام بدهم.</string>
+    <string name="normal_status_placeholder">مثلاً ۲۰ دقیقه مطالعه</string>
 
-    <string name="normal_status">عالی</string>
-    <string name="normal_status_hint">حداقل کار قابل انجام در شرایط عادی</string>
+    <string name="special_status">برنامهٔ سبک‌تر</string>
+    <string name="special_status_hint">برای روزهایی که وقت یا انرژی کمتری دارم.</string>
+    <string name="special_status_placeholder">مثلاً ۵ دقیقه مطالعه</string>
 
-    <string name="special_status">خوب</string>
-    <string name="special_status_hint">حداقل کار قابل انجام در شرایط سخت</string>
+    <string name="emergency_status">حداقلِ ممکن</string>
+    <string name="emergency_status_hint">کوچک‌ترین قدم برای حفظ پیوستگی عادت در روزهای دشوار.</string>
+    <string name="emergency_status_placeholder">مثلاً خواندن یک صفحه</string>
 
-    <string name="emergency_status">متوسط</string>
-    <string name="emergency_status_hint">حداقل کار قابل انجام در شرایط خیلی سخت</string>
-
-
-    <!-- ================================================== -->
-    <!-- Final Goal -->
-    <!-- ================================================== -->
-
-    <string name="final_goal_optional">هدف نهایی (اختیاری)</string>
-    <string name="final_goal_hint">هدف نهایی عادت</string>
+    <!-- Long-term goal -->
+    <string name="habit_goal_section_title">هدف بلندمدت من</string>
+    <string name="final_goal_optional">مقصدی که می‌خواهم به آن برسم (اختیاری)</string>
+    <string name="final_goal_hint">تصویر بزرگ‌تری از چیزی که در بلندمدت می‌خواهم بسازم.</string>
+    <string name="final_goal_placeholder">مثلاً مطالعهٔ منظم ۳۰ کتاب در سال</string>
 
 
     <!-- ================================================== -->
@@ -100,6 +101,36 @@
     <string name="cycle_day_of_total">از %1$d روز</string>
     <string name="cycle_progress_percent">%1$d%%</string>
     <string name="cycle_progress_description">%1$d%% از دوره سپری شده است.</string>
+    <string name="streak_days">روز استمرار</string>
+
+    <string name="status_today_title">امروز چطور پیش رفتی؟</string>
+    <string name="status_today_subtitle">با توجه به شرایط امروزت انتخاب کن.</string>
+
+    <string name="status_normal_title">طبق برنامه</string>
+    <string name="status_normal_description"> کامل انجام دادم.</string>
+
+    <string name="status_special_title">متناسب با شرایط</string>
+    <string name="status_special_description">سبک‌تر انجام دادم.</string>
+
+    <string name="status_emergency_title">حداقلِ ممکن</string>
+    <string name="status_emergency_description"> به‌اندازه توانم انجام دادم.</string>
+
+    <string name="status_failed_title">امروز انجام نشد</string>
+    <string name="status_failed_description"> نتوانستم عادت را انجام دهم.</string>
+
+    <string name="habit_normal_label">حالت عادی</string>
+    <string name="habit_normal_hint">وقتی شرایط معمولی است</string>
+
+    <string name="habit_special_label">حالت متناسب با شرایط</string>
+    <string name="habit_special_hint">وقتی وقت یا انرژی کمتری داری</string>
+
+    <string name="habit_emergency_label">حداقلِ ممکن</string>
+    <string name="habit_emergency_hint">برای روزهای واقعاً دشوار</string>
+
+    <string name="habit_goal_label">مقصد من</string>
+    <string name="habit_goal_hint">چیزی که می‌خواهم در بلندمدت به آن برسم</string>
+
+    <string name="habit_value_empty">هنوز تعریف نشده؛ برای افزودن لمس کن</string>
 
 
 </resources>

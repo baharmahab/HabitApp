@@ -3,6 +3,7 @@ package com.example.habitapp.presentation.habit.detail
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.habitapp.domain.model.DailyStatus
+import com.example.habitapp.domain.model.HabitCycleSummary
 import java.time.LocalDate
 import java.time.LocalDate.now
 
@@ -33,6 +34,8 @@ data class HabitDetailUiState @RequiresApi(Build.VERSION_CODES.O) constructor(
     val editingField: EditingField? = null,
     val editingValue: String = "",
     val nextPendingDate: LocalDate = LocalDate.now(),
+    val streakDays: Int = 0,
+    val completedCycleSummary: HabitCycleSummary? = null,
 
     val error: String? = null
 )

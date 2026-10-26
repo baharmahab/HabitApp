@@ -6,7 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.domain.model.Habit
+import com.example.habitapp.domain.model.SetDailyStatusResult
 import com.example.habitapp.domain.usecase.GetHabitByIdUseCase
+import com.example.habitapp.domain.usecase.GetHabitCycleSummaryUseCase
 import com.example.habitapp.domain.usecase.ObserveHabitDaysUseCase
 import com.example.habitapp.domain.usecase.RestartHabitCycleUseCase
 import com.example.habitapp.domain.usecase.SetDailyStatusUseCase
@@ -27,7 +29,8 @@ class HabitDetailViewModel @Inject constructor(
     private val updateHabitUseCase: UpdateHabitUseCase,
     private val setDailyStatusUseCase: SetDailyStatusUseCase,
     private val observeHabitDaysUseCase: ObserveHabitDaysUseCase,
-    private val restartHabitCycleUseCase: RestartHabitCycleUseCase
+    private val restartHabitCycleUseCase: RestartHabitCycleUseCase,
+    private val getHabitCycleSummaryUseCase: GetHabitCycleSummaryUseCase
 ) : ViewModel() {
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -61,6 +64,10 @@ class HabitDetailViewModel @Inject constructor(
                 }
 
                 currentHabit = habit
+                val completedSummary = getHabitCycleSummaryUseCase(
+                    habitId = habit.id,
+                    cycleNumber = habit.cycleNumber
+                )
 
                 _uiState.value = HabitDetailUiState(
                     isLoading = false,
@@ -71,7 +78,12 @@ class HabitDetailViewModel @Inject constructor(
                     special = habit.special,
                     emergency = habit.emergency,
                     finalGoal = habit.finalGoal,
-                    isConfigured = habit.isConfigured
+                    isConfigured = habit.isConfigured,
+                    streakDays = calculateStreakDays(
+                        startDate = habit.startDate,
+                        nextPendingDate = habit.nextPendingDate
+                    ),
+                    completedCycleSummary = completedSummary,
                 )
 
                 // مشاهده دائمی وضعیت روزها
@@ -196,11 +208,26 @@ class HabitDetailViewModel @Inject constructor(
         viewModelScope.launch {
             try {
 
-                setDailyStatusUseCase(
+                val result = setDailyStatusUseCase(
                     habitId = habit.id,
                     date = date,
                     status = status
                 )
+
+                val completedSummary = when (result) {
+                    SetDailyStatusResult.StatusSaved -> {
+                        _uiState.value.completedCycleSummary
+                    }
+
+                    SetDailyStatusResult.CycleCompleted -> {
+                        getHabitCycleSummaryUseCase(
+                            habitId = habit.id,
+                            cycleNumber = habit.cycleNumber
+                        ) ?: throw IllegalStateException(
+                            "خلاصهٔ چلهٔ تکمیل‌شده پیدا نشد."
+                        )
+                    }
+                }
                 val updatedHabit = getHabitByIdUseCase(habit.id)
                     ?: throw IllegalArgumentException("Habit not found.")
 
@@ -208,6 +235,11 @@ class HabitDetailViewModel @Inject constructor(
 
                 _uiState.value = _uiState.value.copy(
                     nextPendingDate = updatedHabit.nextPendingDate,
+                    streakDays = calculateStreakDays(
+                        startDate = updatedHabit.startDate,
+                        nextPendingDate = updatedHabit.nextPendingDate,
+                    ),
+                    completedCycleSummary = completedSummary,
                     error = null
                 )
 
@@ -250,6 +282,7 @@ class HabitDetailViewModel @Inject constructor(
                     startDate = updatedHabit.startDate,
                     nextPendingDate = updatedHabit.nextPendingDate,
                     dailyStatuses = emptyMap(),
+                    completedCycleSummary = null,
                     error = null
                 )
             } catch (e: Exception) {
@@ -259,5 +292,17 @@ class HabitDetailViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun calculateStreakDays(
+        startDate: LocalDate,
+        nextPendingDate: LocalDate
+    ): Int {
+        return java.time.temporal.ChronoUnit.DAYS
+            .between(startDate, nextPendingDate)
+            .toInt()
+            .coerceAtLeast(0)
     }
 }

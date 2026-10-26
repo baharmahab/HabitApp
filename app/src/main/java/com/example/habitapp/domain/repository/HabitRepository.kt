@@ -1,6 +1,7 @@
 package com.example.habitapp.domain.repository
 
 import com.example.habitapp.domain.model.Habit
+import com.example.habitapp.domain.model.HabitCycleSummary
 import com.example.habitapp.domain.model.HabitDay
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
@@ -43,6 +44,23 @@ interface HabitRepository {
     fun observeHabits(): Flow<List<Habit>>
 
     suspend fun restartHabitCycle(
+        habitId: Long,
+        newStartDate: LocalDate
+    )
+    suspend fun saveCycleSummary(
+        summary: HabitCycleSummary
+    )
+
+    suspend fun getCycleSummary(
+        habitId: Long,
+        cycleNumber: Int
+    ): HabitCycleSummary?
+    suspend fun saveDailyStatusAtomically(
+        habitDay: HabitDay,
+        updatedHabit: Habit,
+        completedSummary: HabitCycleSummary? = null
+    )
+    suspend fun startNextHabitCycle(
         habitId: Long,
         newStartDate: LocalDate
     )

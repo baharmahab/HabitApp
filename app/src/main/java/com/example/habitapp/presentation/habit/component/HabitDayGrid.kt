@@ -113,6 +113,7 @@ fun HabitDayGrid(
     }
 }
 
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun HabitDayCell(
@@ -123,30 +124,27 @@ private fun HabitDayCell(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = if (isEditable) {
-            modifier.clickable(onClick = onClick)
-        } else {
-            modifier
-        },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+    val dayText = if (isPersian) {
+        JalaliDateConverter.formatDay(date)
+    } else {
+        formatDayNumber(
+            day = date.dayOfMonth,
+            locale = Locale.ENGLISH
+        )
+    }
+
+    Box(
+        modifier = modifier
+            .clickable(
+                enabled = isEditable,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
     ) {
-        val dayText = if (isPersian) {
-            JalaliDateConverter.formatDay(date)
-        } else {
-            formatDayNumber(
-                day = date.dayOfMonth,
-                locale = Locale.ENGLISH
-            )
-        }
-
-        Text(
-            text = dayText,
-            fontWeight = FontWeight.Bold)
-
         DailyStatusCircle(
-            status = status
+            status = status,
+            dayText = dayText,
+            isToday = date == LocalDate.now()
         )
     }
 }

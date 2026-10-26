@@ -62,7 +62,8 @@ fun HabitItem(
     onReveal: () -> Unit,
     onCloseReveal: () -> Unit
 ) {
-    var showDailyStatusDialog by remember {
+
+    var showDailyStatusSheet by remember {
         mutableStateOf(false)
     }
 
@@ -77,7 +78,9 @@ fun HabitItem(
     LaunchedEffect(revealed) {
         dragOffset = if (revealed) -revealWidth else 0f
     }
-    val isActive = cardState == HabitCardState.READY
+    val canSelectStatus =
+        cardState == HabitCardState.READY &&
+                todayStatus == null
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -159,33 +162,38 @@ fun HabitItem(
                     )
                 )
 
+
+
                 DailyStatusCircle(
                     status = todayStatus,
-                    modifier = Modifier.clickable(enabled = isActive) {
+                    showCompletedImage = true,
+                    modifier = Modifier.clickable(
+                        enabled = canSelectStatus
+                    ) {
                         if (!habit.isConfigured) {
                             onConfigureHabitClick()
                         } else {
-                            showDailyStatusDialog = true
+                            showDailyStatusSheet = true
                         }
                     }
                 )
+
             }
         }
     }
 
-    if (showDailyStatusDialog) {
+    if (showDailyStatusSheet) {
         DailyStatusDialog(
             allowFailed = false,
             onStatusSelected = { status ->
-                showDailyStatusDialog = false
+                showDailyStatusSheet = false
                 onStatusSelected(status)
             },
             onDismiss = {
-                showDailyStatusDialog = false
+                showDailyStatusSheet = false
             }
         )
-    }
-}
+    }}
 
 @Composable
 private fun DeleteHabitCard(

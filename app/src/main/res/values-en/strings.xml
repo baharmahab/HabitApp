@@ -40,31 +40,31 @@
     <!-- Initial Habit Setup -->
     <!-- ================================================== -->
 
-    <string name="initial_habit_setup">Initial habit setup</string>
-    <string name="habit_setup_description">To get started, define three daily status levels. The final goal is optional.</string>
+    <string name="initial_habit_setup">Create Your Personal Habit Plan</string>
+    <string name="habit_setup_description">Build a plan that fits the different circumstances of your life.</string>
     <string name="close">Close</string>
 
+    <!-- Personal plan -->
+    <string name="habit_plan_title">My Personal Plan</string>
+    <string name="habit_plan_subtitle">Three ways to keep going, whatever the day brings</string>
 
-    <!-- ================================================== -->
-    <!-- Habit Status Configuration -->
-    <!-- ================================================== -->
+    <string name="normal_status">Regular Plan</string>
+    <string name="normal_status_hint">What I want to do on an ordinary day.</string>
+    <string name="normal_status_placeholder">For example, read for 20 minutes</string>
 
-    <string name="normal_status">Normal</string>
-    <string name="normal_status_hint">The minimum you can do under normal circumstances</string>
+    <string name="special_status">Lighter Plan</string>
+    <string name="special_status_hint">For days when I have less time or energy.</string>
+    <string name="special_status_placeholder">For example, read for 5 minutes</string>
 
-    <string name="special_status">Special</string>
-    <string name="special_status_hint">The minimum you can do under difficult circumstances</string>
+    <string name="emergency_status">The Minimum</string>
+    <string name="emergency_status_hint">The smallest step that keeps my habit going on difficult days.</string>
+    <string name="emergency_status_placeholder">For example, read one page</string>
 
-    <string name="emergency_status">Emergency</string>
-    <string name="emergency_status_hint">The minimum you can do under very difficult circumstances</string>
-
-
-    <!-- ================================================== -->
-    <!-- Final Goal -->
-    <!-- ================================================== -->
-
-    <string name="final_goal_optional">Final goal (optional)</string>
-    <string name="final_goal_hint">Habit\'s final goal</string>
+    <!-- Long-term goal -->
+    <string name="habit_goal_section_title">My Long-Term Goal</string>
+    <string name="final_goal_optional">Where I Want to Go (Optional)</string>
+    <string name="final_goal_hint">The bigger picture of what I want to build over time.</string>
+    <string name="final_goal_placeholder">For example, read 30 books a year</string>
 
 
     <!-- ================================================== -->
@@ -100,6 +100,36 @@
     <string name="cycle_day_of_total">of %1$d days</string>
     <string name="cycle_progress_percent">%1$d%%</string>
     <string name="cycle_progress_description">%1$d%% of the cycle has elapsed.</string>
+    <string name="streak_days">Days of Consistency</string>
 
+    <string name="status_today_title">How did today go?</string>
+    <string name="status_today_subtitle">Choose what best reflects your day.</string>
+
+    <string name="status_normal_title">As Planned</string>
+    <string name="status_normal_description">I completed my habit.</string>
+
+    <string name="status_special_title">Adapted to My Day</string>
+    <string name="status_special_description">I did a lighter version.</string>
+
+    <string name="status_emergency_title">The Minimum I Could</string>
+    <string name="status_emergency_description">I did what I could.</string>
+
+    <string name="status_failed_title">Not Done Today</string>
+    <string name="status_failed_description">I couldn\'t do my habit today.</string>
+
+
+    <string name="habit_normal_label">Regular Plan</string>
+    <string name="habit_normal_hint">For ordinary days</string>
+
+    <string name="habit_special_label">Adapted Plan</string>
+    <string name="habit_special_hint">When you have less time or energy</string>
+
+    <string name="habit_emergency_label">The Minimum</string>
+    <string name="habit_emergency_hint">For particularly difficult days</string>
+
+    <string name="habit_goal_label">My Goal</string>
+    <string name="habit_goal_hint">What I want to achieve over time</string>
+
+    <string name="habit_value_empty">Not set yet — tap to add</string>
 
 </resources>

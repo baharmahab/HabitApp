@@ -4,6 +4,7 @@ package com.example.habitapp.di
 import android.content.Context
 import androidx.room.Room
 import com.example.habitapp.data.local.AppDatabase
+import com.example.habitapp.data.local.dao.HabitCycleSummaryDao
 import com.example.habitapp.data.local.dao.HabitDao
 import com.example.habitapp.data.local.dao.HabitDayDao
 import dagger.Module
@@ -41,5 +42,11 @@ object DatabaseModule {
         database: AppDatabase
     ): HabitDayDao {
         return database.habitDayDao()
+    }
+    @Provides
+    fun provideHabitCycleSummaryDao(
+        database: AppDatabase
+    ): HabitCycleSummaryDao {
+        return database.habitCycleSummaryDao()
     }
 }
