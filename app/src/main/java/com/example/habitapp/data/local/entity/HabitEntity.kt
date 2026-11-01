@@ -1,5 +1,7 @@
+
 package com.example.habitapp.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -21,5 +23,9 @@ data class HabitEntity(
     val finalGoal: String,
 
     val cycleNumber: Int,
-    val nextPendingDate: String = startDate
+
+    val nextPendingDate: String = startDate,
+
+    @ColumnInfo(defaultValue = "0")
+    val awaitingCycleConfirmation: Boolean = false
 )

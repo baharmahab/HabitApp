@@ -21,8 +21,6 @@ class CreateHabitUseCase @Inject constructor(
         }
 
         val startDate = LocalDate.now()
-      //  val startDate = LocalDate.now()
-
         val habit = Habit(
             id = 0L,
             name = name.trim(),

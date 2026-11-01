@@ -36,6 +36,11 @@ import com.example.habitapp.R
 import com.example.habitapp.domain.model.Habit
 import java.time.LocalDate
 
+enum class ConfigureHabitMode {
+    INITIAL_SETUP,
+    EDIT_SETTINGS
+}
+
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,24 +48,21 @@ fun ConfigureHabitBottomSheet(
     habit: Habit,
     error: String?,
     onDismiss: () -> Unit,
-    onSave: (Habit, (Boolean) -> Unit) -> Unit
+    onSave: (Habit, (Boolean) -> Unit) -> Unit,
+    mode: ConfigureHabitMode = ConfigureHabitMode.INITIAL_SETUP
 ) {
     var normal by remember(habit.id) {
         mutableStateOf(habit.normal)
     }
-
     var special by remember(habit.id) {
         mutableStateOf(habit.special)
     }
-
     var emergency by remember(habit.id) {
         mutableStateOf(habit.emergency)
     }
-
     var finalGoal by remember(habit.id) {
         mutableStateOf(habit.finalGoal)
     }
-
     var isSaving by remember(habit.id) {
         mutableStateOf(false)
     }
@@ -89,7 +91,13 @@ fun ConfigureHabitBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(R.string.initial_habit_setup),
+                    text = stringResource(
+                        if (mode == ConfigureHabitMode.EDIT_SETTINGS) {
+                            R.string.save_settings
+                        } else {
+                            R.string.initial_habit_setup
+                        }
+                    ),
                     style = MaterialTheme.typography.titleLarge
                 )
 
@@ -136,7 +144,6 @@ fun ConfigureHabitBottomSheet(
                     placeholder = {
                         Text(stringResource(R.string.normal_status_hint))
                     },
-                    singleLine = false,
                     enabled = !isSaving
                 )
 
@@ -150,7 +157,6 @@ fun ConfigureHabitBottomSheet(
                     placeholder = {
                         Text(stringResource(R.string.special_status_hint))
                     },
-                    singleLine = false,
                     enabled = !isSaving
                 )
 
@@ -164,7 +170,6 @@ fun ConfigureHabitBottomSheet(
                     placeholder = {
                         Text(stringResource(R.string.emergency_status_hint))
                     },
-                    singleLine = false,
                     enabled = !isSaving
                 )
 
@@ -178,7 +183,6 @@ fun ConfigureHabitBottomSheet(
                     placeholder = {
                         Text(stringResource(R.string.final_goal_hint))
                     },
-                    singleLine = false,
                     enabled = !isSaving
                 )
 
@@ -195,12 +199,27 @@ fun ConfigureHabitBottomSheet(
 
             Button(
                 onClick = {
+                    val today = LocalDate.now()
+
                     val updatedHabit = habit.copy(
-                        startDate = LocalDate.now(),
+                        startDate = if (
+                            mode == ConfigureHabitMode.INITIAL_SETUP
+                        ) {
+                            today
+                        } else {
+                            habit.startDate
+                        },
                         normal = normal.trim(),
                         special = special.trim(),
                         emergency = emergency.trim(),
-                        finalGoal = finalGoal.trim()
+                        finalGoal = finalGoal.trim(),
+                        nextPendingDate = if (
+                            mode == ConfigureHabitMode.INITIAL_SETUP
+                        ) {
+                            today
+                        } else {
+                            habit.nextPendingDate
+                        }
                     )
 
                     isSaving = true

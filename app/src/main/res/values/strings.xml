@@ -138,4 +138,16 @@
     <string name="keep_previous_settings">تنظیمات قبلی را نگه می‌دارم</string>
     <string name="review_habit_settings">تنظیمات را بازبینی می‌کنم</string>
 
+
+    <string name="next_cycle_invitation_title">آماده‌ای مسیر تازه‌ای را آغاز کنی؟</string>
+    <string name="next_cycle_invitation_description">چله قبلی را به پایان رساندی. می‌توانی با تنظیمات قبلی ادامه بدهی یا پیش از شروع، آن‌ها را مرور و ویرایش کنی.</string>
+
+    <string name="start_next_cycle_title">شروع چله جدید</string>
+    <string name="start_next_cycle_description">دوست داری چطور ادامه بدهی؟</string>
+    <string name="start_next_cycle_confirmation_description">تنظیماتت ذخیره شده است. آماده‌ای چله جدید را شروع کنی؟</string>
+
+    <string name="continue_with_previous_settings">ادامه با تنظیمات قبلی</string>
+    <string name="start_next_cycle">شروع چله جدید</string>
+
+
 </resources>

@@ -37,4 +37,10 @@ interface HabitCycleSummaryDao {
         habitId: Long,
         cycleNumber: Int
     ): HabitCycleSummaryEntity?
+
+    @Query("""
+    DELETE FROM habit_cycle_summaries
+    WHERE habitId = :habitId
+""")
+    suspend fun deleteSummariesByHabitId(habitId: Long)
 }

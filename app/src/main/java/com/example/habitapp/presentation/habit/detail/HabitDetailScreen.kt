@@ -2,6 +2,7 @@ package com.example.habitapp.presentation.habit.detail
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,25 +30,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitapp.R
 import com.example.habitapp.domain.model.DailyStatus
-import com.example.habitapp.presentation.habit.component.CycleCompletedMessage
+import com.example.habitapp.presentation.habit.component.ConfigureHabitBottomSheet
+import com.example.habitapp.presentation.habit.component.ConfigureHabitMode
 import com.example.habitapp.presentation.habit.component.CycleCompletionBottomSheet
+import com.example.habitapp.presentation.habit.component.CycleFailureBottomSheet
 import com.example.habitapp.presentation.habit.component.DailyStatusDialog
-import com.example.habitapp.presentation.habit.component.EditableHabitRow
 import com.example.habitapp.presentation.habit.component.HabitCalendarCard
-import com.example.habitapp.presentation.habit.component.HabitCycleProgress
 import com.example.habitapp.presentation.habit.component.HabitGoalSection
 import com.example.habitapp.presentation.habit.component.HabitPlanSection
-import com.example.habitapp.presentation.habit.component.RestartCycleBottomSheet
+import com.example.habitapp.presentation.habit.component.NextCycleInvitation
+import com.example.habitapp.presentation.habit.component.StartNextCycleBottomSheet
 import java.text.NumberFormat
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
@@ -59,8 +60,72 @@ fun HabitDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    var currentSheet by remember(habitId) {
+        mutableStateOf<HabitDetailSheet?>(null)
+    }
+
+    var selectedDate by remember(habitId) {
+        mutableStateOf<LocalDate?>(null)
+    }
+
+    var returnToStartSheetAfterConfigure by remember(habitId) {
+        mutableStateOf(false)
+    }
+
+    var startRequested by remember(habitId) {
+        mutableStateOf(false)
+    }
+
     LaunchedEffect(habitId) {
+        currentSheet = null
+        selectedDate = null
+        returnToStartSheetAfterConfigure = false
+        startRequested = false
         viewModel.loadHabit(habitId)
+    }
+
+    /*
+     * نمایش شیت پایان چله
+     */
+    LaunchedEffect(
+        uiState.showCycleCompletionSheet,
+        uiState.completedCycleSummary
+    ) {
+        val summary = uiState.completedCycleSummary
+
+        if (
+            uiState.showCycleCompletionSheet &&
+            summary != null
+        ) {
+            currentSheet = HabitDetailSheet.CycleCompletion(summary)
+        }
+    }
+
+    /*
+     * نمایش شیت شکست
+     */
+    LaunchedEffect(uiState.showCycleFailureSheet) {
+        if (uiState.showCycleFailureSheet) {
+            currentSheet = HabitDetailSheet.CycleFailure
+        }
+    }
+
+    /*
+     * بستن شیت شروع فقط پس از موفقیت واقعی عملیات شروع چله
+     */
+    LaunchedEffect(
+        startRequested,
+        uiState.isStartingNextCycle,
+        uiState.canStartNextCycle
+    ) {
+        if (
+            startRequested &&
+            !uiState.isStartingNextCycle &&
+            !uiState.canStartNextCycle
+        ) {
+            currentSheet = null
+            startRequested = false
+        }
     }
 
     Scaffold(
@@ -81,7 +146,7 @@ fun HabitDetailScreen(
     ) { innerPadding ->
 
         when {
-            uiState.isLoading -> {
+            uiState.isLoading && uiState.habit == null -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -92,72 +157,160 @@ fun HabitDetailScreen(
                 }
             }
 
-            uiState.error != null && uiState.habitName.isBlank() -> {
+            uiState.error != null && uiState.habit == null -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = uiState.error ?: ""
-                    )
+                    Text(text = uiState.error.orEmpty())
                 }
             }
 
             else -> {
                 HabitDetailContent(
                     uiState = uiState,
+                    selectedDate = selectedDate,
+                    onSelectedDateChange = {
+                        selectedDate = it
+                    },
                     onEdit = viewModel::startEditing,
                     onValueChange = viewModel::updateEditingValue,
                     onSaveEdit = viewModel::saveEditingField,
                     onCancelEdit = viewModel::cancelEditing,
                     onSetDailyStatus = viewModel::setDailyStatus,
                     onRestartCycle = viewModel::restartHabitCycle,
-                    onDismissCycleCompletionSheet =
-                        viewModel::dismissCycleCompletionSheet,
-                    onKeepSettings =
-                        viewModel::dismissCycleCompletionSheet,
-                    onReviewSettings = {
-                        viewModel.dismissCycleCompletionSheet()
+                    onStartNextCycleClick = {
+                        if (uiState.canStartNextCycle) {
+                            currentSheet =
+                                HabitDetailSheet.StartNextCycle()
+                        }
                     },
                     modifier = Modifier.padding(innerPadding)
                 )
             }
         }
     }
-}
 
+    /*
+     * تنها یک شیت در هر لحظه نمایش داده می‌شود.
+     */
+    when (val sheet = currentSheet) {
+
+        is HabitDetailSheet.CycleCompletion -> {
+            CycleCompletionBottomSheet(
+                summary = sheet.summary,
+                onDismiss = {
+                    viewModel.dismissCycleCompletionSheet()
+
+                    currentSheet = if (uiState.canStartNextCycle) {
+                        HabitDetailSheet.StartNextCycle()
+                    } else {
+                        null
+                    }
+                }
+            )
+        }
+
+        HabitDetailSheet.CycleFailure -> {
+            CycleFailureBottomSheet(
+                onConfirmRestart = {
+                    currentSheet = null
+                    viewModel.restartHabitCycle()
+                },
+                onDismiss = {
+                    currentSheet = null
+                    viewModel.dismissCycleFailureSheet()
+                }
+            )
+        }
+
+        HabitDetailSheet.ConfigureSettings -> {
+            val habit = uiState.habit
+
+            if (habit != null) {
+                ConfigureHabitBottomSheet(
+                    habit = habit,
+                    mode = ConfigureHabitMode.EDIT_SETTINGS,
+                    error = uiState.error,
+                    onDismiss = {
+                        currentSheet = if (
+                            returnToStartSheetAfterConfigure
+                        ) {
+                            returnToStartSheetAfterConfigure = false
+
+                            HabitDetailSheet.StartNextCycle(
+                                showStartButton = true
+                            )
+                        } else {
+                            null
+                        }
+                    },
+                    onSave = { updatedHabit, onResult ->
+                        viewModel.updateHabitSettings(
+                            updatedHabit = updatedHabit,
+                            onResult = { success ->
+                                if (success) {
+                                    returnToStartSheetAfterConfigure = true
+                                }
+
+                                onResult(success)
+                            }
+                        )
+                    }
+                )
+            }
+        }
+
+        is HabitDetailSheet.StartNextCycle -> {
+            StartNextCycleBottomSheet(
+                isStarting = uiState.isStartingNextCycle,
+                error = uiState.error,
+                showStartButton = sheet.showStartButton,
+
+                onContinueWithPreviousSettings = {
+                    startRequested = true
+                    viewModel.startNextCycle()
+                },
+
+                onEditSettings = {
+                    returnToStartSheetAfterConfigure = false
+                    currentSheet = HabitDetailSheet.ConfigureSettings
+                },
+
+                onStartNextCycle = {
+                    startRequested = true
+                    viewModel.startNextCycle()
+                },
+
+                onDismiss = {
+                    if (!uiState.isStartingNextCycle) {
+                        currentSheet = null
+                    }
+                }
+            )
+        }
+
+        null -> Unit
+    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun HabitDetailContent(
     uiState: HabitDetailUiState,
+    selectedDate: LocalDate?,
+    onSelectedDateChange: (LocalDate?) -> Unit,
     onEdit: (EditingField) -> Unit,
     onValueChange: (String) -> Unit,
     onSaveEdit: () -> Unit,
     onCancelEdit: () -> Unit,
     onSetDailyStatus: (LocalDate, DailyStatus) -> Unit,
     onRestartCycle: () -> Unit,
-    onDismissCycleCompletionSheet: () -> Unit,
-    onKeepSettings: () -> Unit,
-    onReviewSettings: () -> Unit,
-    modifier: Modifier = Modifier,
+    onStartNextCycleClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    var selectedDate by remember {
-        mutableStateOf<LocalDate?>(null)
-    }
-    var showRestartSheet by remember {
-        mutableStateOf(false)
-    }
-    if (uiState.showCycleCompletionSheet) {
-        CycleCompletionBottomSheet(
-            onDismiss = onDismissCycleCompletionSheet,
-            onKeepSettings = onKeepSettings,
-            onReviewSettings = onReviewSettings
-        )
-    }
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -171,15 +324,21 @@ private fun HabitDetailContent(
             modifier = Modifier.fillMaxWidth()
         )
 
-        if (uiState.completedCycleSummary != null) {
-            CycleCompletedMessage()
+        /*
+         * دعوت شروع چله فقط تا قبل از شروع واقعی چله بعدی نمایش داده می‌شود.
+         */
+        if (uiState.canStartNextCycle) {
+            NextCycleInvitation(
+                onClick = onStartNextCycleClick
+            )
         }
+
         HabitCalendarCard(
             startDate = uiState.startDate,
             nextPendingDate = uiState.nextPendingDate,
             dailyStatuses = uiState.dailyStatuses,
             onDayClick = { date ->
-                selectedDate = date
+                onSelectedDateChange(date)
             }
         )
 
@@ -187,19 +346,15 @@ private fun HabitDetailContent(
             DailyStatusDialog(
                 allowFailed = date.isBefore(LocalDate.now()),
                 onStatusSelected = { status ->
-                    selectedDate = null
-
-                    if (status == DailyStatus.FAILED) {
-                        showRestartSheet = true
-                    } else {
-                        onSetDailyStatus(date, status)
-                    }
+                    onSelectedDateChange(null)
+                    onSetDailyStatus(date, status)
                 },
                 onDismiss = {
-                    selectedDate = null
+                    onSelectedDateChange(null)
                 }
             )
         }
+
         HabitPlanSection(
             normal = uiState.normal,
             special = uiState.special,
@@ -221,6 +376,7 @@ private fun HabitDetailContent(
             onSave = onSaveEdit,
             onCancel = onCancelEdit
         )
+
         if (uiState.error != null) {
             Text(
                 text = uiState.error,
@@ -229,17 +385,6 @@ private fun HabitDetailContent(
             )
         }
     }
-    if (showRestartSheet) {
-        RestartCycleBottomSheet(
-            onConfirmRestart = {
-                showRestartSheet = false
-                onRestartCycle()
-            },
-            onDismiss = {
-                showRestartSheet = false
-            }
-        )
-    }
 }
 
 @Composable
@@ -247,7 +392,7 @@ private fun HabitDetailHeader(
     habitName: String,
     streakDays: Int,
     modifier: Modifier = Modifier
-)  {
+) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -255,10 +400,8 @@ private fun HabitDetailHeader(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        androidx.compose.foundation.Image(
-            painter = androidx.compose.ui.res.painterResource(
-                id = com.example.habitapp.R.drawable.img
-            ),
+        Image(
+            painter = painterResource(id = R.drawable.img),
             contentDescription = habitName,
             modifier = Modifier.size(100.dp)
         )
@@ -268,11 +411,14 @@ private fun HabitDetailHeader(
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface
         )
+
         val configuration = LocalConfiguration.current
         val locale = configuration.locales[0]
 
         Text(
-            text = NumberFormat.getIntegerInstance(locale).format(streakDays),
+            text = NumberFormat
+                .getIntegerInstance(locale)
+                .format(streakDays),
             style = MaterialTheme.typography.displayLarge,
             color = MaterialTheme.colorScheme.primary
         )

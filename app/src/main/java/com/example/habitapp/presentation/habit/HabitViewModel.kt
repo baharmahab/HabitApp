@@ -1,3 +1,4 @@
+
 package com.example.habitapp.presentation.habit
 
 import android.os.Build
@@ -6,13 +7,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.domain.model.Habit
+import com.example.habitapp.domain.model.SetDailyStatusResult
 import com.example.habitapp.domain.usecase.CreateHabitUseCase
 import com.example.habitapp.domain.usecase.DeleteHabitUseCase
 import com.example.habitapp.domain.usecase.GetHabitCardStateUseCase
 import com.example.habitapp.domain.usecase.GetHabitsUseCase
+import com.example.habitapp.domain.usecase.IsReadyToStartNextHabitCycleUseCase
 import com.example.habitapp.domain.usecase.ObserveHabitsUseCase
 import com.example.habitapp.domain.usecase.ObserveTodayHabitDaysUseCase
 import com.example.habitapp.domain.usecase.SetDailyStatusUseCase
+import com.example.habitapp.domain.usecase.StartNextHabitCycleUseCase
 import com.example.habitapp.domain.usecase.UpdateHabitUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
@@ -35,7 +39,10 @@ class HabitViewModel @Inject constructor(
     private val setDailyStatusUseCase: SetDailyStatusUseCase,
     private val observeTodayHabitDaysUseCase: ObserveTodayHabitDaysUseCase,
     private val getHabitCardStateUseCase: GetHabitCardStateUseCase,
-    private val observeHabitsUseCase: ObserveHabitsUseCase
+    private val observeHabitsUseCase: ObserveHabitsUseCase,
+    private val isReadyToStartNextHabitCycleUseCase:
+    IsReadyToStartNextHabitCycleUseCase,
+    private val startNextHabitCycleUseCase: StartNextHabitCycleUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HabitUiState())
@@ -46,36 +53,7 @@ class HabitViewModel @Inject constructor(
         observeTodayStatuses()
     }
 
-    private fun loadHabits() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                isLoading = true,
-                error = null
-            )
-
-            try {
-                val habits = getHabitsUseCase()
-                loadHabitCardStates(habits)
-
-                _uiState.value = _uiState.value.copy(
-                    habits = habits,
-                    isLoading = false
-                )
-
-            } catch (e: Exception) {
-
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = e.message ?: "خطایی رخ داد."
-                )
-            }
-
-        }
-    }
-
-    private suspend fun loadHabitCardStates(
-        habits: List<Habit>
-    ) {
+    private suspend fun loadHabitCardStates(habits: List<Habit>) {
         val today = LocalDate.now()
 
         val states = habits.associate { habit ->
@@ -85,133 +63,37 @@ class HabitViewModel @Inject constructor(
             )
         }
 
+        val nextCycleReadiness = habits.associate { habit ->
+            habit.id to isReadyToStartNextHabitCycleUseCase(habit)
+        }
+
         _uiState.value = _uiState.value.copy(
-            habitCardStates = states
+            habitCardStates = states,
+            canStartNextCycle = nextCycleReadiness
         )
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun observeTodayStatuses() {
-
         observeTodayHabitDaysUseCase(LocalDate.now())
             .onEach { habitDays ->
-
-                val todayStatuses = habitDays.associate {
-                    it.habitId to it.status
+                val todayStatuses = habitDays.associate { day ->
+                    day.habitId to day.status
                 }
 
                 _uiState.value = _uiState.value.copy(
                     todayStatuses = todayStatuses,
                     error = null
                 )
-                loadHabitCardStates(_uiState.value.habits)
 
+                loadHabitCardStates(_uiState.value.habits)
+            }
+            .catch { e ->
+                _uiState.value = _uiState.value.copy(
+                    error = e.message
+                        ?: "بارگذاری وضعیت عادت‌ها انجام نشد."
+                )
             }
             .launchIn(viewModelScope)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun createHabit(name: String) {
-        viewModelScope.launch {
-            try {
-                createHabitUseCase(name = name)
-                loadHabits()
-
-            } catch (e: Exception) {
-
-                _uiState.value = _uiState.value.copy(
-                    error = e.message ?: "ایجاد عادت انجام نشد."
-                )
-            }
-        }
-    }
-
-    fun updateHabit(
-        habit: Habit,
-        onResult: (Boolean) -> Unit = {}
-    ) {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                error = null
-            )
-
-            try {
-                updateHabitUseCase(habit)
-
-                val habits = getHabitsUseCase()
-
-                _uiState.value = _uiState.value.copy(
-                    habits = habits,
-                    isLoading = false,
-                    error = null
-                )
-
-                onResult(true)
-
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = e.message
-                        ?: "ذخیره تنظیمات عادت انجام نشد."
-                )
-
-                onResult(false)
-            }
-        }
-    }
-
-    fun deleteHabit(habitId: Long) {
-        viewModelScope.launch {
-            try {
-                deleteHabitUseCase(habitId)
-                loadHabits()
-
-            } catch (e: Exception) {
-
-                _uiState.value = _uiState.value.copy(
-                    error = e.message ?: "حذف عادت انجام نشد."
-                )
-            }
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun setDailyStatus(
-        habitId: Long,
-        status: DailyStatus
-    ) {
-        viewModelScope.launch {
-            try {
-
-                setDailyStatusUseCase(
-                    habitId = habitId,
-                    date = LocalDate.now(),
-                    status = status
-                )
-                val habits = getHabitsUseCase()
-                loadHabitCardStates(habits)
-
-                // نیازی نیست todayStatuses را دستی تغییر دهیم.
-                //
-                // Room تغییر می‌کند
-                //      ↓
-                // Flow تغییر می‌کند
-                //      ↓
-                // observeTodayStatuses()
-                //      ↓
-                // UI به‌روزرسانی می‌شود.
-
-                _uiState.value = _uiState.value.copy(
-                    error = null
-                )
-
-            } catch (e: Exception) {
-
-                _uiState.value = _uiState.value.copy(
-                    error = e.message ?: "ثبت وضعیت انجام نشد."
-                )
-            }
-        }
     }
 
     private fun observeHabits() {
@@ -228,9 +110,170 @@ class HabitViewModel @Inject constructor(
             .catch { e ->
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message
+                    error = e.message ?: "بارگذاری عادت‌ها انجام نشد."
                 )
             }
             .launchIn(viewModelScope)
+    }
+
+    fun createHabit(name: String) {
+        viewModelScope.launch {
+            try {
+                createHabitUseCase(name = name)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "ایجاد عادت انجام نشد."
+                )
+            }
+        }
+    }
+
+    fun updateHabit(
+        habit: Habit,
+        onResult: (Boolean) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(error = null)
+
+            try {
+                updateHabitUseCase(habit)
+
+                val habits = getHabitsUseCase()
+
+                _uiState.value = _uiState.value.copy(
+                    habits = habits,
+                    error = null
+                )
+
+                loadHabitCardStates(habits)
+                onResult(true)
+
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "ذخیره تنظیمات عادت انجام نشد."
+                )
+
+                onResult(false)
+            }
+        }
+    }
+
+    fun deleteHabit(habitId: Long) {
+        viewModelScope.launch {
+            try {
+                deleteHabitUseCase(habitId)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "حذف عادت انجام نشد."
+                )
+            }
+        }
+    }
+
+    fun setDailyStatus(
+        habitId: Long,
+        status: DailyStatus
+    ) {
+        viewModelScope.launch {
+            try {
+                val result = setDailyStatusUseCase(
+                    habitId = habitId,
+                    date = LocalDate.now(),
+                    status = status
+                )
+
+                val completedSummary = when (result) {
+                    SetDailyStatusResult.StatusSaved -> null
+                    is SetDailyStatusResult.CycleCompleted -> result.summary
+                    is SetDailyStatusResult.CycleFailed -> null
+                }
+
+                val habits = getHabitsUseCase()
+
+                _uiState.value = _uiState.value.copy(
+                    habits = habits,
+                    error = null,
+                    completedCycleSummary = completedSummary
+                        ?: _uiState.value.completedCycleSummary,
+                    showCycleCompletionSheet = completedSummary != null
+                )
+
+                loadHabitCardStates(habits)
+
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "ثبت وضعیت انجام نشد."
+                )
+            }
+        }
+    }
+
+    fun dismissCycleCompletionSheet() {
+        _uiState.value = _uiState.value.copy(
+            showCycleCompletionSheet = false
+        )
+    }
+
+    fun showStartNextCycleSheet(habitId: Long) {
+        val canStart = _uiState.value.canStartNextCycle[habitId] == true
+
+        if (!canStart || _uiState.value.isStartingNextCycle) return
+
+        _uiState.value = _uiState.value.copy(
+            startNextCycleHabitId = habitId,
+            error = null
+        )
+    }
+
+    fun dismissStartNextCycleSheet() {
+        if (_uiState.value.isStartingNextCycle) return
+
+        _uiState.value = _uiState.value.copy(
+            startNextCycleHabitId = null,
+            error = null
+        )
+    }
+    fun startNextCycle(
+        habitId: Long,
+        onResult: (Boolean) -> Unit = {}
+    ) {
+        if (_uiState.value.isStartingNextCycle) return
+
+        if (_uiState.value.startNextCycleHabitId != habitId) return
+
+        viewModelScope.launch {
+
+            _uiState.value = _uiState.value.copy(
+                isStartingNextCycle = true,
+                error = null
+            )
+
+            try {
+                startNextHabitCycleUseCase(habitId)
+
+                val habits = getHabitsUseCase()
+
+                _uiState.value = _uiState.value.copy(
+                    habits = habits,
+                    startNextCycleHabitId = null,
+                    isStartingNextCycle = false,
+                    error = null
+                )
+
+                loadHabitCardStates(habits)
+
+                onResult(true)
+
+            } catch (e: Exception) {
+
+                _uiState.value = _uiState.value.copy(
+                    isStartingNextCycle = false,
+                    error = e.message
+                        ?: "شروع چله جدید انجام نشد."
+                )
+
+                onResult(false)
+            }
+        }
     }
 }

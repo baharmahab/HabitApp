@@ -62,6 +62,8 @@ interface HabitRepository {
     )
     suspend fun startNextHabitCycle(
         habitId: Long,
+        expectedCycleNumber: Int,
+        expectedStartDate: LocalDate,
         newStartDate: LocalDate
     )
 }

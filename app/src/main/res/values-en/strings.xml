@@ -137,4 +137,16 @@
     <string name="next_cycle_message">Your next cycle begins without a gap. You can review your habit settings before continuing.</string>
     <string name="keep_previous_settings">Keep previous settings</string>
     <string name="review_habit_settings">Review settings</string>
+
+
+    <string name="next_cycle_invitation_title">Ready for a new journey?</string>
+    <string name="next_cycle_invitation_description">Your previous cycle is complete. You can begin a new cycle with your current settings or review them first.</string>
+
+    <string name="start_next_cycle_title">Start a new cycle</string>
+    <string name="start_next_cycle_description">How would you like to continue?</string>
+    <string name="start_next_cycle_confirmation_description">Your settings have been saved. Are you ready to start the new cycle?</string>
+
+    <string name="continue_with_previous_settings">Continue with previous settings</string>
+    <string name="start_next_cycle">Start new cycle</string>
+
 </resources>

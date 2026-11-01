@@ -1,4 +1,3 @@
-
 package com.example.habitapp.domain.usecase
 
 import android.os.Build
@@ -25,47 +24,60 @@ class SetDailyStatusUseCase @Inject constructor(
 
         val today = LocalDate.now()
 
-        if (date.isAfter(today)) {
-            throw IllegalArgumentException(
-                "Cannot register status for a future date."
-            )
+        require(!date.isAfter(today)) {
+            "Cannot register status for a future date."
         }
 
-        if (date == today && status == DailyStatus.FAILED) {
-            throw IllegalArgumentException(
-                "Today cannot be marked as failed."
-            )
+        require(!(date == today && status == DailyStatus.FAILED)) {
+            "Today cannot be marked as failed."
         }
 
-        val habit = repository.getHabitById(habitId)
-            ?: throw IllegalArgumentException("Habit not found.")
-
-        if (date.isBefore(habit.startDate)) {
-            throw IllegalArgumentException(
-                "Cannot register status before the current cycle start date."
-            )
+        val habit = requireNotNull(
+            repository.getHabitById(habitId)
+        ) {
+            "Habit not found."
         }
 
-        val existingDay = repository.getHabitDay(habitId, date)
+        require(!date.isBefore(habit.startDate)) {
+            "Cannot register status before the current cycle start date."
+        }
+
+        // دریافت اطلاعات همین چله
+        val cycleEndDate = habit.startDate.plusDays(39)
+
+        val cycleDays = repository.getHabitDays(
+            habitId = habitId,
+            startDate = habit.startDate,
+            endDate = cycleEndDate
+        )
+
+        // اگر چله قبلاً شکست خورده باشد، ادامه آن مجاز نیست.
+        require(cycleDays.none { it.status == DailyStatus.FAILED }) {
+            "This cycle has already failed."
+        }
+
+        val existingDay = repository.getHabitDay(
+            habitId = habitId,
+            date = date
+        )
+
         val isNextPendingDate = date == habit.nextPendingDate
         val isAlreadyRegistered = existingDay?.status != null
 
-        if (!isNextPendingDate && !isAlreadyRegistered) {
-            throw IllegalArgumentException(
-                "You must register the previous days first."
-            )
+        require(isNextPendingDate || isAlreadyRegistered) {
+            "You must register the previous days first."
         }
 
-        val habitDay = if (existingDay != null) {
-            existingDay.copy(status = status)
-        } else {
-            HabitDay(
-                id = 0L,
-                habitId = habitId,
-                date = date,
-                status = status
-            )
-        }
+        val habitDay = existingDay?.copy(
+            status = status
+        ) ?: HabitDay(
+            id = 0L,
+            habitId = habitId,
+            date = date,
+            status = status
+        )
+
+        val isCycleFailed = status == DailyStatus.FAILED
 
         val dayNumber = ChronoUnit.DAYS.between(
             habit.startDate,
@@ -75,17 +87,18 @@ class SetDailyStatusUseCase @Inject constructor(
         val isCompletingCycle =
             isNextPendingDate &&
                     dayNumber == 40L &&
-                    status != DailyStatus.FAILED
+                    !isCycleFailed
 
         val completedSummary = if (isCompletingCycle) {
+
             val previousDays = repository.getHabitDays(
                 habitId = habitId,
                 startDate = habit.startDate,
                 endDate = date
             )
 
-            val daysForSummary = previousDays
-                .filterNot { it.date == date } + habitDay
+            val daysForSummary =
+                previousDays.filterNot { it.date == date } + habitDay
 
             HabitCycleSummary(
                 habitId = habitId,
@@ -106,42 +119,46 @@ class SetDailyStatusUseCase @Inject constructor(
                 },
                 completedAt = date
             )
+
         } else {
             null
         }
 
+        // در شکست، اطلاعات تاریخ‌های چله تغییر نمی‌کنند.
+        // در ثبت عادی، تاریخ بعدی جلو می‌رود.
         val updatedHabit = when {
-            isCompletingCycle -> {
-                val nextCycleStartDate = date.plusDays(1)
+            isCycleFailed -> habit
 
-                habit.copy(
-                    startDate = nextCycleStartDate,
-                    nextPendingDate = nextCycleStartDate,
-                    cycleNumber = habit.cycleNumber + 1
-                )
-            }
-
-            isNextPendingDate -> {
-                habit.copy(
-                    nextPendingDate = habit.nextPendingDate.plusDays(1)
-                )
-            }
+            isNextPendingDate -> habit.copy(
+                nextPendingDate = date.plusDays(1),
+                awaitingCycleConfirmation = false
+            )
 
             else -> habit
         }
 
+        // ثبت وضعیت روز و خلاصه چله در یک عملیات اتمیک
         repository.saveDailyStatusAtomically(
             habitDay = habitDay,
             updatedHabit = updatedHabit,
             completedSummary = completedSummary
         )
 
-        return if (completedSummary != null) {
-            SetDailyStatusResult.CycleCompleted(
-                summary = completedSummary
-            )
-        } else {
-            SetDailyStatusResult.StatusSaved
+        // نتیجه فقط پس از ذخیره موفق برگردانده می‌شود.
+        return when {
+            isCycleFailed -> {
+                SetDailyStatusResult.CycleFailed(date)
+            }
+
+            isCompletingCycle -> {
+                SetDailyStatusResult.CycleCompleted(
+                    summary = requireNotNull(completedSummary)
+                )
+            }
+
+            else -> {
+                SetDailyStatusResult.StatusSaved
+            }
         }
     }
 }

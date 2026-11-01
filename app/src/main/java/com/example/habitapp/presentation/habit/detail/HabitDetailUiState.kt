@@ -3,9 +3,9 @@ package com.example.habitapp.presentation.habit.detail
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.habitapp.domain.model.DailyStatus
+import com.example.habitapp.domain.model.Habit
 import com.example.habitapp.domain.model.HabitCycleSummary
 import java.time.LocalDate
-import java.time.LocalDate.now
 
 enum class EditingField {
     NORMAL,
@@ -14,13 +14,15 @@ enum class EditingField {
     FINAL_GOAL
 }
 
-
-
-data class HabitDetailUiState @RequiresApi(Build.VERSION_CODES.O) constructor(
+@RequiresApi(Build.VERSION_CODES.O)
+data class HabitDetailUiState(
     val isLoading: Boolean = false,
 
+    val habit: Habit? = null,
     val habitName: String = "",
-    val startDate: LocalDate = now(),
+
+    val startDate: LocalDate = LocalDate.now(),
+    val nextPendingDate: LocalDate = LocalDate.now(),
 
     val normal: String = "",
     val special: String = "",
@@ -33,9 +35,19 @@ data class HabitDetailUiState @RequiresApi(Build.VERSION_CODES.O) constructor(
 
     val editingField: EditingField? = null,
     val editingValue: String = "",
-    val nextPendingDate: LocalDate = LocalDate.now(),
+
     val streakDays: Int = 0,
+
     val completedCycleSummary: HabitCycleSummary? = null,
     val showCycleCompletionSheet: Boolean = false,
+    val showCycleFailureSheet: Boolean = false,
+
+    val awaitingCycleConfirmation: Boolean = false,
+    val showConfigureHabitSheet: Boolean = false,
+
+    val canStartNextCycle: Boolean = false,
+    val showStartNextCycleSheet: Boolean = false,
+    val isStartingNextCycle: Boolean = false,
+
     val error: String? = null
 )

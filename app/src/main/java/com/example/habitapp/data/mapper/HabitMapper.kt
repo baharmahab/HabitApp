@@ -18,7 +18,8 @@ fun HabitEntity.toDomain(): Habit {
         emergency = emergency,
         finalGoal = finalGoal,
         cycleNumber = cycleNumber,
-        nextPendingDate = LocalDate.parse(nextPendingDate)
+        nextPendingDate = LocalDate.parse(nextPendingDate),
+        awaitingCycleConfirmation = awaitingCycleConfirmation
     )
 }
 
@@ -32,6 +33,7 @@ fun Habit.toEntity(): HabitEntity {
         emergency = emergency,
         finalGoal = finalGoal,
         cycleNumber = cycleNumber,
-        nextPendingDate = nextPendingDate.toString()
+        nextPendingDate = nextPendingDate.toString(),
+        awaitingCycleConfirmation = awaitingCycleConfirmation
     )
 }

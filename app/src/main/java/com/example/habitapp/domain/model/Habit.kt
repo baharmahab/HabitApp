@@ -14,9 +14,11 @@ data class Habit(
     val cycleNumber: Int,
 
     // Oldest date whose status has not been determined yet
-    val nextPendingDate: LocalDate = startDate
-) {
+    val nextPendingDate: LocalDate = startDate,
 
+    // The completed cycle is waiting for user confirmation
+    val awaitingCycleConfirmation: Boolean = false
+) {
     /**
      * A habit is ready for daily tracking
      * only when its required daily levels are configured.

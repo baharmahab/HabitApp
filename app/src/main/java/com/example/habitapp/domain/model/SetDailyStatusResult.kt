@@ -1,5 +1,6 @@
-
 package com.example.habitapp.domain.model
+
+import java.time.LocalDate
 
 sealed interface SetDailyStatusResult {
 
@@ -7,5 +8,9 @@ sealed interface SetDailyStatusResult {
 
     data class CycleCompleted(
         val summary: HabitCycleSummary
+    ) : SetDailyStatusResult
+
+    data class CycleFailed(
+        val date: LocalDate
     ) : SetDailyStatusResult
 }
