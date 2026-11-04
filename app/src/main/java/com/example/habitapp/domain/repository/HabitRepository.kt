@@ -57,13 +57,7 @@ interface HabitRepository {
     ): HabitCycleSummary?
     suspend fun saveDailyStatusAtomically(
         habitDay: HabitDay,
-        updatedHabit: Habit,
-        completedSummary: HabitCycleSummary? = null
+        updatedHabit: Habit
     )
-    suspend fun startNextHabitCycle(
-        habitId: Long,
-        expectedCycleNumber: Int,
-        expectedStartDate: LocalDate,
-        newStartDate: LocalDate
-    )
+
 }

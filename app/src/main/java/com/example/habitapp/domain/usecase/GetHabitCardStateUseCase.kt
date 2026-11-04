@@ -7,7 +7,6 @@ import com.example.habitapp.domain.repository.HabitRepository
 import java.time.LocalDate
 import javax.inject.Inject
 
-// Determines the current state of a habit card.
 class GetHabitCardStateUseCase @Inject constructor(
     private val repository: HabitRepository
 ) {
@@ -18,24 +17,26 @@ class GetHabitCardStateUseCase @Inject constructor(
         today: LocalDate = LocalDate.now()
     ): HabitCardState {
 
-        // Retrieve the habit from the repository.
-        // If the habit does not exist, stop execution.
         val habit = repository.getHabitById(habitId)
             ?: throw IllegalArgumentException("Habit not found.")
 
-        // Check whether a status has been registered for today.
-        // A missing record or a null status means today is not registered.
         val todayStatusExists =
             repository.getHabitDay(habitId, today)?.status != null
 
-        // Check whether the next unresolved date is before today.
-        // If true, at least one past day still needs to be resolved.
         val hasPendingPastDays =
             habit.nextPendingDate.isBefore(today)
 
-        // Determine the card state according to the business rules.
-        // Past unresolved days take priority over today's status.
+        val cycleDay40 = habit.startDate.plusDays(39)
+        val cycleDay41 = habit.startDate.plusDays(40)
+
+        val isCycleCompleted =
+            !today.isBefore(cycleDay40) &&
+                    habit.nextPendingDate == cycleDay41
+
         return when {
+            isCycleCompleted ->
+                HabitCardState.CYCLE_COMPLETED
+
             hasPendingPastDays ->
                 HabitCardState.NEEDS_REVIEW
 
@@ -47,3 +48,5 @@ class GetHabitCardStateUseCase @Inject constructor(
         }
     }
 }
+
+

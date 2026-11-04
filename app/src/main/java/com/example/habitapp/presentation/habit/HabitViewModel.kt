@@ -16,7 +16,6 @@ import com.example.habitapp.domain.usecase.IsReadyToStartNextHabitCycleUseCase
 import com.example.habitapp.domain.usecase.ObserveHabitsUseCase
 import com.example.habitapp.domain.usecase.ObserveTodayHabitDaysUseCase
 import com.example.habitapp.domain.usecase.SetDailyStatusUseCase
-import com.example.habitapp.domain.usecase.StartNextHabitCycleUseCase
 import com.example.habitapp.domain.usecase.UpdateHabitUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
@@ -40,9 +39,6 @@ class HabitViewModel @Inject constructor(
     private val observeTodayHabitDaysUseCase: ObserveTodayHabitDaysUseCase,
     private val getHabitCardStateUseCase: GetHabitCardStateUseCase,
     private val observeHabitsUseCase: ObserveHabitsUseCase,
-    private val isReadyToStartNextHabitCycleUseCase:
-    IsReadyToStartNextHabitCycleUseCase,
-    private val startNextHabitCycleUseCase: StartNextHabitCycleUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HabitUiState())
@@ -63,13 +59,8 @@ class HabitViewModel @Inject constructor(
             )
         }
 
-        val nextCycleReadiness = habits.associate { habit ->
-            habit.id to isReadyToStartNextHabitCycleUseCase(habit)
-        }
-
         _uiState.value = _uiState.value.copy(
-            habitCardStates = states,
-            canStartNextCycle = nextCycleReadiness
+            habitCardStates = states
         )
     }
 
@@ -79,10 +70,8 @@ class HabitViewModel @Inject constructor(
                 val todayStatuses = habitDays.associate { day ->
                     day.habitId to day.status
                 }
-
                 _uiState.value = _uiState.value.copy(
-                    todayStatuses = todayStatuses,
-                    error = null
+                    todayStatuses = todayStatuses
                 )
 
                 loadHabitCardStates(_uiState.value.habits)
@@ -182,20 +171,13 @@ class HabitViewModel @Inject constructor(
                     status = status
                 )
 
-                val completedSummary = when (result) {
-                    SetDailyStatusResult.StatusSaved -> null
-                    is SetDailyStatusResult.CycleCompleted -> result.summary
-                    is SetDailyStatusResult.CycleFailed -> null
-                }
-
                 val habits = getHabitsUseCase()
 
                 _uiState.value = _uiState.value.copy(
                     habits = habits,
                     error = null,
-                    completedCycleSummary = completedSummary
-                        ?: _uiState.value.completedCycleSummary,
-                    showCycleCompletionSheet = completedSummary != null
+                    showCycleCompletionSheet =
+                        result == SetDailyStatusResult.CycleCompleted
                 )
 
                 loadHabitCardStates(habits)
@@ -207,73 +189,10 @@ class HabitViewModel @Inject constructor(
             }
         }
     }
-
     fun dismissCycleCompletionSheet() {
         _uiState.value = _uiState.value.copy(
             showCycleCompletionSheet = false
         )
     }
 
-    fun showStartNextCycleSheet(habitId: Long) {
-        val canStart = _uiState.value.canStartNextCycle[habitId] == true
-
-        if (!canStart || _uiState.value.isStartingNextCycle) return
-
-        _uiState.value = _uiState.value.copy(
-            startNextCycleHabitId = habitId,
-            error = null
-        )
-    }
-
-    fun dismissStartNextCycleSheet() {
-        if (_uiState.value.isStartingNextCycle) return
-
-        _uiState.value = _uiState.value.copy(
-            startNextCycleHabitId = null,
-            error = null
-        )
-    }
-    fun startNextCycle(
-        habitId: Long,
-        onResult: (Boolean) -> Unit = {}
-    ) {
-        if (_uiState.value.isStartingNextCycle) return
-
-        if (_uiState.value.startNextCycleHabitId != habitId) return
-
-        viewModelScope.launch {
-
-            _uiState.value = _uiState.value.copy(
-                isStartingNextCycle = true,
-                error = null
-            )
-
-            try {
-                startNextHabitCycleUseCase(habitId)
-
-                val habits = getHabitsUseCase()
-
-                _uiState.value = _uiState.value.copy(
-                    habits = habits,
-                    startNextCycleHabitId = null,
-                    isStartingNextCycle = false,
-                    error = null
-                )
-
-                loadHabitCardStates(habits)
-
-                onResult(true)
-
-            } catch (e: Exception) {
-
-                _uiState.value = _uiState.value.copy(
-                    isStartingNextCycle = false,
-                    error = e.message
-                        ?: "شروع چله جدید انجام نشد."
-                )
-
-                onResult(false)
-            }
-        }
-    }
 }

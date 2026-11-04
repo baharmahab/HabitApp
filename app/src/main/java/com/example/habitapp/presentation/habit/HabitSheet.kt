@@ -1,6 +1,6 @@
+
 package com.example.habitapp.presentation.habit
 
-import com.example.habitapp.domain.model.HabitCycleSummary
 import com.example.habitapp.presentation.habit.component.ConfigureHabitMode
 
 sealed interface HabitSheet {
@@ -9,7 +9,8 @@ sealed interface HabitSheet {
 
     data class ConfigureHabit(
         val habitId: Long,
-        val mode: ConfigureHabitMode = ConfigureHabitMode.INITIAL_SETUP,
+        val mode: ConfigureHabitMode =
+            ConfigureHabitMode.INITIAL_SETUP,
         val returnToStartCycle: Boolean = false
     ) : HabitSheet
 
@@ -17,12 +18,13 @@ sealed interface HabitSheet {
         val habitId: Long
     ) : HabitSheet
 
-    data class StartNextCycle(
-        val habitId: Long,
-        val showStartButton: Boolean = false
+    data object CycleCompletion : HabitSheet
+
+    data class DailyStatus(
+        val habitId: Long
     ) : HabitSheet
 
-    data class CycleCompletion(
-        val summary: HabitCycleSummary
+    data class StartNextCycle(
+        val habitId: Long
     ) : HabitSheet
 }

@@ -17,6 +17,7 @@ import com.example.habitapp.R
 
 @Composable
 fun NextCycleInvitation(
+    cycleInvitationState: CycleInvitationState,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -37,21 +38,34 @@ fun NextCycleInvitation(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text(
-                text = stringResource(
-                    R.string.cycle_completion_sheet_title
-                ),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+            when (cycleInvitationState) {
 
-            Text(
-                text = stringResource(
-                    R.string.next_cycle_invitation_description
-                ),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+                CycleInvitationState.COMPLETING_TODAY -> {
+                    Text(
+                        text = "🎉 چله ۴۰ روزه‌ات با موفقیت به پایان رسید",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+
+                CycleInvitationState.READY_FOR_NEXT_CYCLE -> {
+                    Text(
+                        text = stringResource(
+                            R.string.cycle_completion_sheet_title
+                        ),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+
+                    Text(
+                        text = stringResource(
+                            R.string.next_cycle_invitation_description
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
         }
     }
 }

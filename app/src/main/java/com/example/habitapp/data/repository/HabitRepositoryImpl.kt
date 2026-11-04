@@ -153,8 +153,7 @@ class HabitRepositoryImpl @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun saveDailyStatusAtomically(
         habitDay: HabitDay,
-        updatedHabit: Habit,
-        completedSummary: HabitCycleSummary?
+        updatedHabit: Habit
     ) {
         database.withTransaction {
             val currentHabit = habitDao.getHabitById(habitDay.habitId)
@@ -165,135 +164,14 @@ class HabitRepositoryImpl @Inject constructor(
                 "Habit ID mismatch."
             }
 
-            require(
-                !(habitDay.status == DailyStatus.FAILED &&
-                        completedSummary != null)
-            ) {
-                "A failed day cannot complete a cycle."
-            }
-
-            // بررسی خلاصه در صورت تکمیل موفق چله
-            if (completedSummary != null) {
-                check(
-                    currentHabit.cycleNumber == completedSummary.cycleNumber &&
-                            currentHabit.startDate == completedSummary.startDate.toString()
-                ) {
-                    "The cycle has already changed or been completed."
-                }
-
-                val cycleEndDate = currentHabit.startDate
-                    .let { LocalDate.parse(it) }
-                    .plusDays(39)
-
-                check(
-                    completedSummary.endDate == cycleEndDate &&
-                            completedSummary.failedCount == 0 &&
-                            completedSummary.habitId == habitDay.habitId
-                ) {
-                    "The cycle summary is inconsistent."
-                }
-
-                val existingSummary = habitCycleSummaryDao.getSummary(
-                    habitId = completedSummary.habitId,
-                    cycleNumber = completedSummary.cycleNumber
-                )
-
-                check(existingSummary == null) {
-                    "A summary already exists for this cycle."
-                }
             }
 
             // ۱. ذخیره وضعیت روز
             habitDayDao.upsertHabitDay(habitDay.toEntity())
 
-            // ۲. در صورت شکست، پاک کردن تمام خلاصه‌های قبلی
-            if (habitDay.status == DailyStatus.FAILED) {
-                habitCycleSummaryDao.deleteSummariesByHabitId(
-                    habitDay.habitId
-                )
-            }
-
-            // ۳. ذخیره خلاصه در صورت تکمیل موفق روز چهلم
-            if (completedSummary != null) {
-                habitCycleSummaryDao.insertSummary(
-                    completedSummary.toEntity()
-                )
-            }
-
             // ۴. به‌روزرسانی اطلاعات عادت
             habitDao.updateHabit(updatedHabit.toEntity())
         }
-    }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    override suspend fun startNextHabitCycle(
-        habitId: Long,
-        expectedCycleNumber: Int,
-        expectedStartDate: LocalDate,
-        newStartDate: LocalDate
-    ) {
-        database.withTransaction {
-            val habit = habitDao.getHabitById(habitId)
-                ?: throw IllegalArgumentException("Habit not found.")
-
-            // جلوگیری از شروع چله بر اساس اطلاعات قدیمی
-            check(
-                habit.cycleNumber == expectedCycleNumber &&
-                        habit.startDate == expectedStartDate.toString()
-            ) {
-                "Habit cycle has changed."
-            }
-
-            // بررسی وجود خلاصهٔ چلهٔ فعلی
-            val summary = habitCycleSummaryDao.getSummary(
-                habitId = habitId,
-                cycleNumber = expectedCycleNumber
-            ) ?: throw IllegalStateException(
-                "The current cycle has not been completed."
-            )
-
-            // تاریخ پایان چلهٔ قبلی
-            val cycleEndDate = expectedStartDate.plusDays(39)
-
-            // بررسی صحت خلاصهٔ چله
-            check(
-                summary.startDate == expectedStartDate.toString() &&
-                        summary.endDate == cycleEndDate.toString() &&
-                        summary.failedCount == 0
-            ) {
-                "The cycle summary is inconsistent."
-            }
-
-            // اطمینان از ثبت روز چهلم
-            check(
-                habit.nextPendingDate == cycleEndDate.plusDays(1).toString()
-            ) {
-                "Day 40 has not been registered."
-            }
-
-            // تاریخ شروع چلهٔ جدید باید دقیقاً روز بعد از روز چهلم باشد
-            require(newStartDate == cycleEndDate.plusDays(1)) {
-                "Invalid next cycle start date."
-            }
-
-            // شروع چلهٔ جدید فقط پس از روز چهلم مجاز است
-            check(LocalDate.now().isAfter(cycleEndDate)) {
-                "The current cycle has not ended yet."
-            }
-
-            // حذف وضعیت‌های روزانهٔ چلهٔ قبلی
-            habitDayDao.deleteHabitDaysByHabitId(habitId)
-
-            // ثبت اطلاعات چلهٔ جدید
-            habitDao.updateHabit(
-                habit.copy(
-                    startDate = newStartDate.toString(),
-                    nextPendingDate = newStartDate.toString(),
-                    cycleNumber = expectedCycleNumber + 1,
-                    awaitingCycleConfirmation = false
-                )
-            )
-        }
-    }
 
 }

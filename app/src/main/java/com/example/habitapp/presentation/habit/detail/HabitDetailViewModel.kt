@@ -6,14 +6,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.domain.model.Habit
+import com.example.habitapp.domain.model.HabitCardState
 import com.example.habitapp.domain.model.SetDailyStatusResult
 import com.example.habitapp.domain.usecase.GetHabitByIdUseCase
+import com.example.habitapp.domain.usecase.GetHabitCardStateUseCase
 import com.example.habitapp.domain.usecase.GetHabitCycleSummaryUseCase
-import com.example.habitapp.domain.usecase.IsReadyToStartNextHabitCycleUseCase
 import com.example.habitapp.domain.usecase.ObserveHabitDaysUseCase
 import com.example.habitapp.domain.usecase.RestartHabitCycleUseCase
 import com.example.habitapp.domain.usecase.SetDailyStatusUseCase
-import com.example.habitapp.domain.usecase.StartNextHabitCycleUseCase
 import com.example.habitapp.domain.usecase.UpdateHabitUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
@@ -36,13 +36,12 @@ class HabitDetailViewModel @Inject constructor(
     private val observeHabitDaysUseCase: ObserveHabitDaysUseCase,
     private val restartHabitCycleUseCase: RestartHabitCycleUseCase,
     private val getHabitCycleSummaryUseCase: GetHabitCycleSummaryUseCase,
-    private val isReadyToStartNextHabitCycleUseCase:
-    IsReadyToStartNextHabitCycleUseCase,
-    private val startNextHabitCycleUseCase: StartNextHabitCycleUseCase
+    private val getHabitCardStateUseCase: GetHabitCardStateUseCase
 ) : ViewModel() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private val _uiState = MutableStateFlow(HabitDetailUiState())
+
     @RequiresApi(Build.VERSION_CODES.O)
     val uiState: StateFlow<HabitDetailUiState> = _uiState.asStateFlow()
 
@@ -85,8 +84,10 @@ class HabitDetailViewModel @Inject constructor(
                     cycleNumber = summaryCycleNumber
                 )
 
-                val canStartNextCycle =
-                    isReadyToStartNextHabitCycleUseCase(habit)
+                // تشخیص پایان چله با همان منطق صفحه فهرست
+                val isCycleCompleted =
+                    getHabitCardStateUseCase(habit.id) ==
+                            HabitCardState.CYCLE_COMPLETED
 
                 _uiState.update {
                     it.copy(
@@ -104,9 +105,8 @@ class HabitDetailViewModel @Inject constructor(
                             startDate = habit.startDate,
                             nextPendingDate = habit.nextPendingDate
                         ),
+                        isCycleCompleted = isCycleCompleted,
                         completedCycleSummary = completedSummary,
-                        canStartNextCycle = canStartNextCycle,
-                        awaitingCycleConfirmation = false,
                         error = null
                     )
                 }
@@ -241,10 +241,8 @@ class HabitDetailViewModel @Inject constructor(
                 val existingHabit = currentHabit
                     ?: throw IllegalStateException("Habit not loaded.")
 
-                /*
-                 * فقط تنظیمات عادت تغییر می‌کنند.
-                 * تاریخ شروع، تاریخ بعدی و شماره چله حفظ می‌شوند.
-                 */
+                // فقط تنظیمات عادت تغییر می‌کنند.
+                // تاریخ شروع، تاریخ بعدی و شماره چله حفظ می‌شوند.
                 val habitToSave = existingHabit.copy(
                     normal = updatedHabit.normal,
                     special = updatedHabit.special,
@@ -306,14 +304,8 @@ class HabitDetailViewModel @Inject constructor(
                     status = status
                 )
 
-                val completedSummary = when (result) {
-                    SetDailyStatusResult.StatusSaved -> null
-
-                    is SetDailyStatusResult.CycleCompleted ->
-                        result.summary
-
-                    is SetDailyStatusResult.CycleFailed -> null
-                }
+                val isCycleCompleted =
+                    result is SetDailyStatusResult.CycleCompleted
 
                 val isCycleFailed =
                     result is SetDailyStatusResult.CycleFailed
@@ -323,8 +315,10 @@ class HabitDetailViewModel @Inject constructor(
 
                 currentHabit = updatedHabit
 
-                val canStartNextCycle =
-                    isReadyToStartNextHabitCycleUseCase(updatedHabit)
+                // بررسی وضعیت واقعی پایان چله
+                val shouldShowCycleInvitation =
+                    getHabitCardStateUseCase(updatedHabit.id) ==
+                            HabitCardState.CYCLE_COMPLETED
 
                 _uiState.update { state ->
                     state.copy(
@@ -338,25 +332,26 @@ class HabitDetailViewModel @Inject constructor(
                         emergency = updatedHabit.emergency,
                         finalGoal = updatedHabit.finalGoal,
                         isConfigured = updatedHabit.isConfigured,
+
                         streakDays = calculateStreakDays(
                             startDate = updatedHabit.startDate,
                             nextPendingDate = updatedHabit.nextPendingDate
                         ),
 
-                        // تقویم چله تکمیل‌شده حفظ می‌شود.
+                        // تقویم فعلی حفظ می‌شود.
                         dailyStatuses = state.dailyStatuses,
 
-                        completedCycleSummary =
-                            completedSummary ?: state.completedCycleSummary,
+                        // وضعیت نمایش دعوت‌نامه پایان چله
+                        isCycleCompleted = shouldShowCycleInvitation,
 
+                        // نمایش BottomSheet پایان چله
                         showCycleCompletionSheet =
-                            completedSummary != null,
+                            isCycleCompleted || state.showCycleCompletionSheet,
 
+                        // نمایش BottomSheet شکست چله
                         showCycleFailureSheet =
                             isCycleFailed || state.showCycleFailureSheet,
 
-                        canStartNextCycle = canStartNextCycle,
-                        awaitingCycleConfirmation = false,
                         error = null
                     )
                 }
@@ -408,13 +403,11 @@ class HabitDetailViewModel @Inject constructor(
                         finalGoal = updatedHabit.finalGoal,
                         isConfigured = updatedHabit.isConfigured,
                         streakDays = 0,
+                        isCycleCompleted = false,
                         dailyStatuses = emptyMap(),
                         completedCycleSummary = null,
                         showCycleCompletionSheet = false,
                         showCycleFailureSheet = false,
-                        canStartNextCycle = false,
-                        showStartNextCycleSheet = false,
-                        awaitingCycleConfirmation = false,
                         error = null
                     )
                 }
@@ -425,67 +418,6 @@ class HabitDetailViewModel @Inject constructor(
                         isLoading = false,
                         error = e.message
                             ?: "شروع دوبارهٔ چله انجام نشد."
-                    )
-                }
-            }
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun startNextCycle() {
-        if (_uiState.value.isStartingNextCycle) return
-
-        val habit = currentHabit ?: return
-
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isStartingNextCycle = true,
-                    error = null
-                )
-            }
-
-            try {
-                startNextHabitCycleUseCase(habit.id)
-
-                val updatedHabit = getHabitByIdUseCase(habit.id)
-                    ?: throw IllegalArgumentException("Habit not found.")
-
-                currentHabit = updatedHabit
-
-                val previousSummary = getHabitCycleSummaryUseCase(
-                    habitId = updatedHabit.id,
-                    cycleNumber = updatedHabit.cycleNumber - 1
-                )
-
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        isStartingNextCycle = false,
-                        habit = updatedHabit,
-                        habitName = updatedHabit.name,
-                        startDate = updatedHabit.startDate,
-                        nextPendingDate = updatedHabit.nextPendingDate,
-                        normal = updatedHabit.normal,
-                        special = updatedHabit.special,
-                        emergency = updatedHabit.emergency,
-                        finalGoal = updatedHabit.finalGoal,
-                        isConfigured = updatedHabit.isConfigured,
-                        streakDays = 0,
-                        dailyStatuses = emptyMap(),
-                        completedCycleSummary = previousSummary,
-                        canStartNextCycle = false,
-                        showStartNextCycleSheet = false,
-                        error = null
-                    )
-                }
-
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isStartingNextCycle = false,
-                        error = e.message
-                            ?: "شروع چلهٔ جدید انجام نشد."
                     )
                 }
             }

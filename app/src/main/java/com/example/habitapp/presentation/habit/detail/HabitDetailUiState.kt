@@ -37,17 +37,12 @@ data class HabitDetailUiState(
     val editingValue: String = "",
 
     val streakDays: Int = 0,
-
+    val isCycleCompleted: Boolean = false,
     val completedCycleSummary: HabitCycleSummary? = null,
     val showCycleCompletionSheet: Boolean = false,
     val showCycleFailureSheet: Boolean = false,
-
-    val awaitingCycleConfirmation: Boolean = false,
     val showConfigureHabitSheet: Boolean = false,
 
-    val canStartNextCycle: Boolean = false,
-    val showStartNextCycleSheet: Boolean = false,
-    val isStartingNextCycle: Boolean = false,
 
     val error: String? = null
 )

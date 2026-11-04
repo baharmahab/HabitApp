@@ -6,9 +6,7 @@ sealed interface SetDailyStatusResult {
 
     data object StatusSaved : SetDailyStatusResult
 
-    data class CycleCompleted(
-        val summary: HabitCycleSummary
-    ) : SetDailyStatusResult
+    data object CycleCompleted : SetDailyStatusResult
 
     data class CycleFailed(
         val date: LocalDate

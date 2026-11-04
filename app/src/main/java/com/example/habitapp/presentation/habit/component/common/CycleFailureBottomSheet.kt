@@ -1,5 +1,4 @@
-
-package com.example.habitapp.presentation.habit.component
+package com.example.habitapp.presentation.habit.component.common
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

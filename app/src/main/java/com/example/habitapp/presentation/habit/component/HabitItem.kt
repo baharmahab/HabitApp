@@ -1,14 +1,13 @@
+
 package com.example.habitapp.presentation.habit.component
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,10 +37,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.habitapp.R
 import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.domain.model.Habit
@@ -55,25 +51,21 @@ fun HabitItem(
     habit: Habit,
     todayStatus: DailyStatus?,
     cardState: HabitCardState,
-    onHabitClick: () -> Unit,
-    onConfigureHabitClick: () -> Unit,
-    onStatusSelected: (DailyStatus) -> Unit,
+    cycleInvitationState: CycleInvitationState?,
+    onStatusCircleClick: () -> Unit,
+    onCardClick: () -> Unit,
     onDeleteClick: () -> Unit,
     revealed: Boolean,
     onReveal: () -> Unit,
-    onCloseReveal: () -> Unit,
-    showNextCycleInvitation: Boolean = false,
-    onStartNextCycleClick: () -> Unit = {}
+    onCloseReveal: () -> Unit
 ) {
-    var showDailyStatusSheet by remember {
-        mutableStateOf(false)
-    }
 
     var dragOffset by remember(habit.id) {
         mutableFloatStateOf(0f)
     }
 
     val density = LocalDensity.current
+
     val revealWidth = with(density) {
         68.dp.toPx()
     }
@@ -82,17 +74,13 @@ fun HabitItem(
         dragOffset = if (revealed) -revealWidth else 0f
     }
 
-    val canSelectStatus =
-        cardState == HabitCardState.READY &&
-                todayStatus == null
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
     ) {
 
-        // کارت حذف در سمت راست کارت اصلی
+        // کارت حذف
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -106,13 +94,11 @@ fun HabitItem(
             }
         }
 
-        // کارت اصلی عادت
+        // کارت اصلی
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(
-                    if (showNextCycleInvitation) 136.dp else 85.dp
-                )
+                .height(85.dp)
                 .alpha(
                     if (cardState == HabitCardState.NEEDS_REVIEW) {
                         0.5f
@@ -147,141 +133,21 @@ fun HabitItem(
                     )
                 }
                 .clickable {
-                    if (revealed || dragOffset < 0f) {
-                        onCloseReveal()
-                    } else {
-                        onHabitClick()
-                    }
+                    onCardClick()
                 },
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
         ) {
-
-            if (showNextCycleInvitation) {
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-
-                    // نام عادت و وضعیت روزانه
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(40.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = habit.name,
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                textDecoration = if (
-                                    cardState == HabitCardState.COMPLETED_TODAY
-                                ) {
-                                    TextDecoration.LineThrough
-                                } else {
-                                    TextDecoration.None
-                                }
-                            )
-                        )
-
-                        DailyStatusCircle(
-                            status = todayStatus,
-                            showCompletedImage = true,
-                            modifier = Modifier.clickable(
-                                enabled = canSelectStatus
-                            ) {
-                                if (!habit.isConfigured) {
-                                    onConfigureHabitClick()
-                                } else {
-                                    showDailyStatusSheet = true
-                                }
-                            }
-                        )
-                    }
-
-                    // دعوت شروع چله، داخل خود کارت
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(
-                                MaterialTheme.colorScheme.primaryContainer
-                            )
-                            .clickable(
-                                enabled = !revealed && dragOffset == 0f,
-                                onClick = onStartNextCycleClick
-                            )
-                            .padding(
-                                horizontal = 12.dp,
-                                vertical = 8.dp
-                            ),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "چله قبلی با موفقیت به پایان رسید؛ برای شروع چله جدید لمس کن.",
-                            modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontSize = 12.sp
-                            )
-                        )
-                    }
-                }
-
-            } else {
-
-                // ظاهر قبلی کارت در حالت عادی
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = habit.name,
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            textDecoration = if (
-                                cardState == HabitCardState.COMPLETED_TODAY
-                            ) {
-                                TextDecoration.LineThrough
-                            } else {
-                                TextDecoration.None
-                            }
-                        )
-                    )
-
-                    DailyStatusCircle(
-                        status = todayStatus,
-                        showCompletedImage = true,
-                        modifier = Modifier.clickable(
-                            enabled = canSelectStatus
-                        ) {
-                            if (!habit.isConfigured) {
-                                onConfigureHabitClick()
-                            } else {
-                                showDailyStatusSheet = true
-                            }
-                        }
-                    )
-                }
-            }
+            HabitCardContent(
+                habit = habit,
+                todayStatus = todayStatus,
+                cardState = cardState,
+                cycleInvitationState = cycleInvitationState,
+                onStatusCircleClick = onStatusCircleClick
+            )
         }
-    }
-
-    if (showDailyStatusSheet) {
-        DailyStatusDialog(
-            allowFailed = false,
-            onStatusSelected = { status ->
-                showDailyStatusSheet = false
-                onStatusSelected(status)
-            },
-            onDismiss = {
-                showDailyStatusSheet = false
-            }
-        )
     }
 }
 

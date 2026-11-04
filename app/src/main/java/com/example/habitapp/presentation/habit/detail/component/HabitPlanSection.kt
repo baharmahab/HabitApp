@@ -1,4 +1,4 @@
-package com.example.habitapp.presentation.habit.component
+package com.example.habitapp.presentation.habit.detail.component
 
 
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.habitapp.R
+import com.example.habitapp.presentation.habit.component.EditableHabitRow
 import com.example.habitapp.presentation.habit.detail.EditingField
 
 @Composable

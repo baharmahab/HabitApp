@@ -1,3 +1,4 @@
+
 package com.example.habitapp.presentation.habit
 
 import EmptyHabitContent
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,14 +33,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.habitapp.domain.model.HabitCardState
 import com.example.habitapp.presentation.habit.component.AddHabitBottomSheet
 import com.example.habitapp.presentation.habit.component.ConfigureHabitBottomSheet
-import com.example.habitapp.presentation.habit.component.ConfigureHabitMode
 import com.example.habitapp.presentation.habit.component.CycleCompletionBottomSheet
+import com.example.habitapp.presentation.habit.component.CycleInvitationState
+import com.example.habitapp.presentation.habit.component.DailyStatusDialog
 import com.example.habitapp.presentation.habit.component.DeleteHabitBottomSheet
 import com.example.habitapp.presentation.habit.component.HabitItem
 import com.example.habitapp.presentation.habit.component.HabitsTopBar
-import com.example.habitapp.presentation.habit.component.NextCycleInvitation
 import com.example.habitapp.presentation.habit.component.StartNextCycleBottomSheet
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -48,7 +51,6 @@ fun HabitsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // تنها مرجع مدیریت BottomSheetهای صفحه
     var currentSheet by remember {
         mutableStateOf<HabitSheet?>(null)
     }
@@ -61,27 +63,14 @@ fun HabitsScreen(
         mutableStateOf<Long?>(null)
     }
 
-    /*
-     * دریافت وضعیت پایان چله از ViewModel
-     * و تبدیل آن به وضعیت نمایشی currentSheet.
-     */
-    LaunchedEffect(
-        uiState.showCycleCompletionSheet,
-        uiState.completedCycleSummary
-    ) {
+    LaunchedEffect(uiState.showCycleCompletionSheet) {
         if (uiState.showCycleCompletionSheet) {
-            uiState.completedCycleSummary?.let { summary ->
-                currentSheet = HabitSheet.CycleCompletion(summary)
-            }
-        } else if (currentSheet is HabitSheet.CycleCompletion) {
-            currentSheet = null
+            currentSheet = HabitSheet.CycleCompletion
         }
     }
 
     Scaffold(
-        floatingActionButtonPosition =
-            androidx.compose.material3.FabPosition.Start,
-
+        floatingActionButtonPosition = FabPosition.Start,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -98,7 +87,6 @@ fun HabitsScreen(
                 )
             }
         },
-
         topBar = {
             HabitsTopBar(
                 selectedDate = selectedDate,
@@ -152,7 +140,6 @@ fun HabitsScreen(
                         .weight(1f)
                         .fillMaxWidth()
                         .padding(top = 16.dp),
-
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
 
@@ -161,90 +148,142 @@ fun HabitsScreen(
                         key = { habit -> habit.id }
                     ) { habit ->
 
-                        Column(
-                            verticalArrangement =
-                                Arrangement.spacedBy(8.dp)
-                        ) {
+                        val cardState =
+                            uiState.habitCardStates[habit.id]
+                                ?: HabitCardState.READY
 
-                            HabitItem(
-                                habit = habit,
+                        // محاسبه شماره روز فقط در HabitsScreen
+                        val dayNumber = ChronoUnit.DAYS.between(
+                            habit.startDate,
+                            LocalDate.now()
+                        ) + 1L
 
-                                todayStatus =
-                                    uiState.todayStatuses[habit.id],
+                        // تعیین وضعیت دعوت به چله جدید
+                        val cycleInvitationState =
+                            if (cardState == HabitCardState.CYCLE_COMPLETED) {
+                                when {
+                                    dayNumber == 40L ->
+                                        CycleInvitationState.COMPLETING_TODAY
 
-                                cardState =
-                                    uiState.habitCardStates[habit.id]
-                                        ?: HabitCardState.READY,
+                                    dayNumber > 40L ->
+                                        CycleInvitationState.READY_FOR_NEXT_CYCLE
 
-                                onHabitClick = {
-                                    revealedHabitId = null
+                                    else -> null
+                                }
+                            } else {
+                                null
+                            }
 
-                                    if (habit.isConfigured) {
-                                        onOpenHabitDetail(habit.id)
-                                    } else {
+                        HabitItem(
+                            habit = habit,
+                            todayStatus = uiState.todayStatuses[habit.id],
+                            cardState = cardState,
+
+                            // انتقال وضعیت به کارت، بدون انتقال dayNumber
+                            cycleInvitationState = cycleInvitationState,
+
+                            // کلیک روی دایره وضعیت
+                            onStatusCircleClick = {
+                                revealedHabitId = null
+
+                                when (cardState) {
+
+                                    HabitCardState.READY -> {
                                         currentSheet =
-                                            HabitSheet.ConfigureHabit(
-                                                habitId = habit.id
-                                            )
+                                            if (habit.isConfigured) {
+                                                HabitSheet.DailyStatus(habit.id)
+                                            } else {
+                                                HabitSheet.ConfigureHabit(habit.id)
+                                            }
                                     }
-                                },
 
-                                onConfigureHabitClick = {
+                                    HabitCardState.NEEDS_REVIEW,
+                                    HabitCardState.COMPLETED_TODAY -> {
+                                        onOpenHabitDetail(habit.id)
+                                    }
+
+                                    HabitCardState.CYCLE_COMPLETED -> {
+                                        if (dayNumber == 40L) {
+                                            currentSheet =
+                                                HabitSheet.DailyStatus(habit.id)
+                                        } else {
+                                            onOpenHabitDetail(habit.id)
+                                        }
+                                    }
+                                }
+                            },
+
+                            // کلیک روی بدنه کارت
+                            onCardClick = {
+                                if (revealedHabitId == habit.id) {
+                                    revealedHabitId = null
+                                } else {
                                     revealedHabitId = null
 
-                                    currentSheet =
-                                        HabitSheet.ConfigureHabit(
-                                            habitId = habit.id
-                                        )
-                                },
+                                    when (cardState) {
 
-                                onStatusSelected = { status ->
-                                    revealedHabitId = null
+                                        HabitCardState.CYCLE_COMPLETED -> {
+                                            when {
+                                                dayNumber == 40L -> {
+                                                    onOpenHabitDetail(habit.id)
+                                                }
 
-                                    viewModel.setDailyStatus(
-                                        habitId = habit.id,
-                                        status = status
-                                    )
-                                },
+                                                dayNumber > 40L -> {
+                                                    currentSheet =
+                                                        HabitSheet.StartNextCycle(habit.id)
+                                                }
 
-                                onDeleteClick = {
-                                    currentSheet =
-                                        HabitSheet.DeleteHabit(habit.id)
-                                },
+                                                else -> {
+                                                    onOpenHabitDetail(habit.id)
+                                                }
+                                            }
+                                        }
 
-                                revealed = revealedHabitId == habit.id,
-
-                                onReveal = {
-                                    revealedHabitId = habit.id
-                                },
-
-                                onCloseReveal = {
-                                    if (revealedHabitId == habit.id) {
-                                        revealedHabitId = null
+                                        else -> {
+                                            if (habit.isConfigured) {
+                                                onOpenHabitDetail(habit.id)
+                                            } else {
+                                                currentSheet =
+                                                    HabitSheet.ConfigureHabit(habit.id)
+                                            }
+                                        }
                                     }
-                                },
-                                showNextCycleInvitation = uiState.canStartNextCycle[habit.id] == true
-                            )
-                        }
+                                }
+                            },
+
+                            onDeleteClick = {
+                                currentSheet =
+                                    HabitSheet.DeleteHabit(habit.id)
+                            },
+
+                            revealed = revealedHabitId == habit.id,
+
+                            onReveal = {
+                                revealedHabitId = habit.id
+                            },
+
+                            onCloseReveal = {
+                                if (revealedHabitId == habit.id) {
+                                    revealedHabitId = null
+                                }
+                            }
+                        )
                     }
                 }
             }
         }
     }
 
-    // مدیریت متمرکز تمام BottomSheetها
+    // مدیریت متمرکز BottomSheetها
     when (val sheet = currentSheet) {
 
         HabitSheet.AddHabit -> {
-
             AddHabitBottomSheet(
                 onDismiss = {
                     currentSheet = null
                 },
-
                 onCreateHabit = { name ->
                     viewModel.createHabit(name)
-
                     currentSheet = null
                     revealedHabitId = null
                 }
@@ -252,38 +291,19 @@ fun HabitsScreen(
         }
 
         is HabitSheet.ConfigureHabit -> {
-
             val habit = uiState.habits.firstOrNull {
                 it.id == sheet.habitId
             }
 
             habit?.let { selectedHabit ->
-
                 ConfigureHabitBottomSheet(
                     habit = selectedHabit,
                     error = uiState.error,
                     mode = sheet.mode,
-
                     onDismiss = {
                         currentSheet = null
-
-                        // پس از ویرایش تنظیمات، به شیت شروع برمی‌گردیم.
-                        if (sheet.returnToStartCycle) {
-
-                            viewModel.showStartNextCycleSheet(
-                                sheet.habitId
-                            )
-
-                            currentSheet =
-                                HabitSheet.StartNextCycle(
-                                    habitId = sheet.habitId,
-                                    showStartButton = true
-                                )
-                        }
                     },
-
                     onSave = { updatedHabit, onResult ->
-
                         viewModel.updateHabit(
                             habit = updatedHabit,
                             onResult = onResult
@@ -294,77 +314,62 @@ fun HabitsScreen(
         }
 
         is HabitSheet.DeleteHabit -> {
-
             val habit = uiState.habits.firstOrNull {
                 it.id == sheet.habitId
             }
 
             DeleteHabitBottomSheet(
                 habitName = habit?.name ?: "این عادت",
-
                 onDismiss = {
                     currentSheet = null
                     revealedHabitId = null
                 },
-
                 onConfirmDelete = {
                     viewModel.deleteHabit(sheet.habitId)
-
                     currentSheet = null
                     revealedHabitId = null
-                }
-            )
-        }
-
-        is HabitSheet.StartNextCycle -> {
-
-            StartNextCycleBottomSheet(
-                isStarting = uiState.isStartingNextCycle,
-                error = uiState.error,
-                showStartButton = sheet.showStartButton,
-
-                onContinueWithPreviousSettings = {
-                    viewModel.startNextCycle(sheet.habitId) { success ->
-                        if (success) {
-                            currentSheet = null
-                        }
-                    }
-                },
-
-                onEditSettings = {
-                    viewModel.dismissStartNextCycleSheet()
-
-                    currentSheet =
-                        HabitSheet.ConfigureHabit(
-                            habitId = sheet.habitId,
-                            mode = ConfigureHabitMode.EDIT_SETTINGS,
-                            returnToStartCycle = true
-                        )
-                },
-
-                onStartNextCycle = {
-                    viewModel.startNextCycle(sheet.habitId) { success ->
-                        if (success) {
-                            currentSheet = null
-                        }
-                    }
-                },
-
-                onDismiss = {
-                    viewModel.dismissStartNextCycleSheet()
-                    currentSheet = null
                 }
             )
         }
 
         is HabitSheet.CycleCompletion -> {
-
             CycleCompletionBottomSheet(
-                summary = sheet.summary,
-
                 onDismiss = {
                     currentSheet = null
                     viewModel.dismissCycleCompletionSheet()
+                }
+            )
+        }
+
+        is HabitSheet.DailyStatus -> {
+            DailyStatusDialog(
+                allowFailed = false,
+                onStatusSelected = { status ->
+                    viewModel.setDailyStatus(
+                        habitId = sheet.habitId,
+                        status = status
+                    )
+
+                    currentSheet = null
+                    revealedHabitId = null
+                },
+                onDismiss = {
+                    currentSheet = null
+                }
+            )
+        }
+
+        is HabitSheet.StartNextCycle -> {
+            StartNextCycleBottomSheet(
+                onContinueWithPreviousSettings = {
+                    // منطق شروع چله جدید در مرحله بعد متصل می‌شود.
+                },
+                onUpdateSettings = {
+                    currentSheet =
+                        HabitSheet.ConfigureHabit(sheet.habitId)
+                },
+                onDismiss = {
+                    currentSheet = null
                 }
             )
         }
