@@ -4,5 +4,6 @@ package com.example.habitapp.domain.model
 enum class DailyStatus {
     NORMAL,
     SPECIAL,
-    EMERGENCY
+    EMERGENCY,
+    FAILED
 }

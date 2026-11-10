@@ -28,12 +28,21 @@ data class HabitDetailUiState(
     val special: String = "",
     val emergency: String = "",
     val finalGoal: String = "",
+
     val isConfigured: Boolean = false,
+
     val dailyStatuses: Map<LocalDate, DailyStatus?> = emptyMap(),
+
     val editingField: EditingField? = null,
     val editingValue: String = "",
+
     val streakDays: Int = 0,
     val isCycleCompleted: Boolean = false,
     val completedCycleSummary: HabitCycleSummary? = null,
+    val showCycleCompletionSheet: Boolean = false,
+    val showCycleFailureSheet: Boolean = false,
+    val showConfigureHabitSheet: Boolean = false,
+
+
     val error: String? = null
 )

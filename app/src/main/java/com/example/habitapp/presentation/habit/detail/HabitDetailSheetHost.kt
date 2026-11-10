@@ -6,9 +6,10 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.domain.model.Habit
-import com.example.habitapp.presentation.component.bottomSheet.ConfigureHabitBottomSheet
-import com.example.habitapp.presentation.component.bottomSheet.CycleCompletionBottomSheet
-import com.example.habitapp.presentation.component.bottomSheet.DailyStatusBottomSheet
+import com.example.habitapp.presentation.habit.component.ConfigureHabitBottomSheet
+import com.example.habitapp.presentation.habit.component.CycleCompletionBottomSheet
+import com.example.habitapp.presentation.habit.component.DailyStatusDialog
+import com.example.habitapp.presentation.habit.component.StartNextCycleBottomSheet
 import com.example.habitapp.presentation.habit.component.common.CycleFailureBottomSheet
 import java.time.LocalDate
 
@@ -18,10 +19,13 @@ fun HabitDetailSheetHost(
     sheet: HabitDetailSheet?,
     uiState: HabitDetailUiState,
     onDismiss: () -> Unit,
-    onSetDailyStatus: (LocalDate, DailyStatus) -> Unit,
-    onFailureSelected: (LocalDate) -> Unit,
-    onSaveHabitSettings: (Habit, (Boolean) -> Unit) -> Unit,
-    onConfirmFail: () -> Unit,
+    onSetDailyStatus: (date: LocalDate, status: DailyStatus) -> Unit,
+    onSaveHabitSettings: (updatedHabit: Habit, onResult: (Boolean) -> Unit) -> Unit,
+    onConfirmRestart: () -> Unit,
+    onDismissCycleCompletion: () -> Unit,
+    onDismissCycleFailure: () -> Unit,
+    onContinueWithPreviousSettings: () -> Unit,
+    onUpdateSettings: () -> Unit
 ) {
     when (sheet) {
 
@@ -42,31 +46,37 @@ fun HabitDetailSheetHost(
         }
 
         is HabitDetailSheet.DailyStatus -> {
-            DailyStatusBottomSheet(
+            DailyStatusDialog(
                 allowFailed = sheet.date.isBefore(LocalDate.now()),
                 onStatusSelected = { status ->
                     onSetDailyStatus(sheet.date, status)
                     onDismiss()
                 },
-                onFailureSelected = {
-                    onFailureSelected(sheet.date)
-                },
                 onDismiss = onDismiss
             )
         }
 
-        is HabitDetailSheet.CycleCompletion -> {
+        HabitDetailSheet.CycleCompletion -> {
             CycleCompletionBottomSheet(
+                onDismiss = onDismissCycleCompletion
+            )
+        }
+
+        HabitDetailSheet.CycleFailure -> {
+            CycleFailureBottomSheet(
+                onConfirmRestart = onConfirmRestart,
+                onDismiss = onDismissCycleFailure
+            )
+        }
+
+        HabitDetailSheet.StartNextCycle -> {
+            StartNextCycleBottomSheet(
+                onContinueWithPreviousSettings = onContinueWithPreviousSettings,
+                onUpdateSettings = onUpdateSettings,
                 onDismiss = onDismiss
             )
         }
 
-        is HabitDetailSheet.CycleFailure -> {
-            CycleFailureBottomSheet(
-                onConfirmRestart = onConfirmFail,
-                onDismiss = onDismiss
-            )
-        }
         null -> Unit
     }
 }

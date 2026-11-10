@@ -1,7 +1,5 @@
 package com.example.habitapp.domain.repository
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.example.habitapp.domain.model.Habit
 import com.example.habitapp.domain.model.HabitCycleSummary
 import com.example.habitapp.domain.model.HabitDay
@@ -48,11 +46,6 @@ interface HabitRepository {
     suspend fun restartHabitCycle(
         habitId: Long,
         newStartDate: LocalDate
-    )
-    @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun restartFailedHabitCycle(
-        habitId: Long,
-        newStartDate: LocalDate = LocalDate.now()
     )
     suspend fun saveCycleSummary(
         summary: HabitCycleSummary

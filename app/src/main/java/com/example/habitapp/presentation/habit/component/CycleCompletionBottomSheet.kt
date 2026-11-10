@@ -1,6 +1,8 @@
-package com.example.habitapp.presentation.component.bottomSheet
+package com.example.habitapp.presentation.habit.component
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.habitapp.R
+import com.example.habitapp.domain.model.HabitCycleSummary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

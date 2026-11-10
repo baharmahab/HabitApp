@@ -34,6 +34,7 @@ fun DailyStatusCircle(
         DailyStatus.NORMAL -> Color(0xFF6FAF8F)
         DailyStatus.SPECIAL -> Color(0xFFE0B15A)
         DailyStatus.EMERGENCY -> Color(0xFFD96B6B)
+        DailyStatus.FAILED -> Color(0xFF8A8A8A)
         null -> Color.Transparent
     }
 

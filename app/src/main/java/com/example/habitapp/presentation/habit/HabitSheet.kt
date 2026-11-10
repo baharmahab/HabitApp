@@ -1,7 +1,7 @@
 
 package com.example.habitapp.presentation.habit
 
-import com.example.habitapp.presentation.component.bottomSheet.ConfigureHabitMode
+import com.example.habitapp.presentation.habit.component.ConfigureHabitMode
 
 sealed interface HabitSheet {
 

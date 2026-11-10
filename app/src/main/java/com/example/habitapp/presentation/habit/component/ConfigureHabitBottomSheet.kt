@@ -1,4 +1,5 @@
-package com.example.habitapp.presentation.component.bottomSheet
+
+package com.example.habitapp.presentation.habit.component
 
 import android.os.Build
 import androidx.annotation.RequiresApi

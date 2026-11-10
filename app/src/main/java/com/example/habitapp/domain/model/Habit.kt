@@ -12,7 +12,6 @@ data class Habit(
     val emergency: String,
     val finalGoal: String,
     val cycleNumber: Int,
-    val successfulCycleStreak: Int = 0,
 
     // Oldest date whose status has not been determined yet
     val nextPendingDate: LocalDate = startDate,
