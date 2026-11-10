@@ -24,8 +24,9 @@ data class HabitEntity(
 
     val cycleNumber: Int,
 
-    val nextPendingDate: String = startDate,
-
     @ColumnInfo(defaultValue = "0")
-    val awaitingCycleConfirmation: Boolean = false
+    val successfulCycleStreak: Int = 0,
+
+    val nextPendingDate: String = startDate
+//--------------------------------------------------------------------------------------------------
 )

@@ -27,10 +27,6 @@ class SetDailyStatusUseCase @Inject constructor(
             "Cannot register status for a future date."
         }
 
-        require(!(date == today && status == DailyStatus.FAILED)) {
-            "Today cannot be marked as failed."
-        }
-
         val habit = requireNotNull(
             repository.getHabitById(habitId)
         ) {"Habit not found."}
@@ -60,8 +56,6 @@ class SetDailyStatusUseCase @Inject constructor(
             status = status
         )
 
-        val isCycleFailed = status == DailyStatus.FAILED
-
         val dayNumber = ChronoUnit.DAYS.between(
             habit.startDate,
             date
@@ -69,14 +63,11 @@ class SetDailyStatusUseCase @Inject constructor(
 
         val isCompletingCycle =
             isNextPendingDate &&
-                    dayNumber == 40L &&
-                    !isCycleFailed
+                    dayNumber == 40L
 
         // در شکست، اطلاعات تاریخ‌های چله تغییر نمی‌کنند.
         // در ثبت عادی، تاریخ بعدی جلو می‌رود.
         val updatedHabit = when {
-
-            isCycleFailed -> habit
 
             isNextPendingDate -> habit.copy(
                 nextPendingDate = date.plusDays(1))
@@ -93,9 +84,6 @@ class SetDailyStatusUseCase @Inject constructor(
 
         // نتیجه فقط پس از ذخیره موفق برگردانده می‌شود.
         return when {
-            isCycleFailed -> {
-                SetDailyStatusResult.CycleFailed(date)
-            }
 
             isCompletingCycle -> {
                 SetDailyStatusResult.CycleCompleted

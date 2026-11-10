@@ -29,7 +29,6 @@ class IsReadyToStartNextHabitCycleUseCase @Inject constructor(
         ) ?: return false
 
         return summary.startDate == habit.startDate &&
-                summary.endDate == cycleEndDate &&
-                summary.failedCount == 0
+                summary.endDate == cycleEndDate 
     }
 }

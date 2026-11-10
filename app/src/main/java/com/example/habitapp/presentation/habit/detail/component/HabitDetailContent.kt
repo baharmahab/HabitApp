@@ -29,7 +29,6 @@ fun HabitDetailContent(
     uiState: HabitDetailUiState,
     cycleInvitationState: CycleInvitationState?,
     onDayClick: (LocalDate) -> Unit,
-    onStartNextCycleClick: () -> Unit,
     onEdit: (EditingField) -> Unit,
     onValueChange: (String) -> Unit,
     onSaveEdit: () -> Unit,
@@ -54,7 +53,6 @@ fun HabitDetailContent(
                 cycleInvitationState = state,
                 onClick = {
                     if (state == CycleInvitationState.READY_FOR_NEXT_CYCLE) {
-                        onStartNextCycleClick()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

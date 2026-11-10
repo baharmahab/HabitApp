@@ -49,22 +49,6 @@ fun HabitDetailScreen(
         viewModel.loadHabit(habitId)
     }
 
-    // مدیریت نمایش Sheetها
-    LaunchedEffect(
-        uiState.showCycleCompletionSheet,
-        uiState.showCycleFailureSheet
-    ) {
-        currentSheet = when {
-            uiState.showCycleCompletionSheet ->
-                HabitDetailSheet.CycleCompletion
-
-            uiState.showCycleFailureSheet ->
-                HabitDetailSheet.CycleFailure
-
-            else -> null
-        }
-    }
-
     // تعیین وضعیت دعوت به چله بعدی
     val cycleInvitationState =
         if (uiState.isCycleCompleted) {
@@ -134,10 +118,6 @@ fun HabitDetailScreen(
                         currentSheet =
                             HabitDetailSheet.DailyStatus(date)
                     },
-                    onStartNextCycleClick = {
-                        currentSheet =
-                            HabitDetailSheet.StartNextCycle
-                    },
                     onEdit = viewModel::startEditing,
                     onValueChange = viewModel::updateEditingValue,
                     onSaveEdit = viewModel::saveEditingField,
@@ -171,27 +151,15 @@ fun HabitDetailScreen(
             )
         },
 
-        onConfirmRestart = {
+        onConfirmFail = {
             currentSheet = null
-            viewModel.restartHabitCycle()
+            viewModel.restartFailedHabitCycle()
         },
 
-        onDismissCycleCompletion = {
-            currentSheet = null
-            viewModel.dismissCycleCompletionSheet()
+        onFailureSelected = { date ->
+            currentSheet = HabitDetailSheet.CycleFailure
         },
 
-        onDismissCycleFailure = {
-            currentSheet = null
-            viewModel.dismissCycleFailureSheet()
-        },
 
-        onContinueWithPreviousSettings = {
-            currentSheet = null
-        },
-
-        onUpdateSettings = {
-            currentSheet = null
-        }
     )
 }

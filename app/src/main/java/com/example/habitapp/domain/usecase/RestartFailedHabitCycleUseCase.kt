@@ -6,15 +6,16 @@ import com.example.habitapp.domain.repository.HabitRepository
 import java.time.LocalDate
 import javax.inject.Inject
 
-class RestartHabitCycleUseCase @Inject constructor(
+class RestartFailedHabitCycleUseCase @Inject constructor(
     private val habitRepository: HabitRepository
 ) {
+
     @RequiresApi(Build.VERSION_CODES.O)
     suspend operator fun invoke(
         habitId: Long,
         newStartDate: LocalDate = LocalDate.now()
     ) {
-        habitRepository.restartHabitCycle(
+        habitRepository.restartFailedHabitCycle(
             habitId = habitId,
             newStartDate = newStartDate
         )

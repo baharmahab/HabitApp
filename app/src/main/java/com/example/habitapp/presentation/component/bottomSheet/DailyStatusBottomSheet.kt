@@ -1,5 +1,4 @@
-
-package com.example.habitapp.presentation.habit.component
+package com.example.habitapp.presentation.component.bottomSheet
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,7 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material.icons.outlined.Cancel
+import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,20 +33,17 @@ import com.example.habitapp.domain.model.DailyStatus
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DailyStatusDialog(
+fun DailyStatusBottomSheet(
     allowFailed: Boolean,
     onStatusSelected: (DailyStatus) -> Unit,
+    onFailureSelected: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val statuses = buildList {
-        add(DailyStatus.NORMAL)
-        add(DailyStatus.SPECIAL)
-        add(DailyStatus.EMERGENCY)
-
-        if (allowFailed) {
-            add(DailyStatus.FAILED)
-        }
-    }
+    val statuses = listOf(
+        DailyStatus.NORMAL,
+        DailyStatus.SPECIAL,
+        DailyStatus.EMERGENCY
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -75,14 +71,6 @@ fun DailyStatusDialog(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = stringResource(R.string.status_today_subtitle),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
             Spacer(modifier = Modifier.height(12.dp))
 
             statuses.forEachIndexed { index, status ->
@@ -95,13 +83,22 @@ fun DailyStatusDialog(
 
                 if (index < statuses.lastIndex) {
                     HorizontalDivider(
-                        modifier = Modifier.padding(
-                            start = 48.dp
-                        ),
+                        modifier = Modifier.padding(start = 48.dp),
                         color = MaterialTheme.colorScheme.outlineVariant
                             .copy(alpha = 0.5f)
                     )
                 }
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outlineVariant
+                    .copy(alpha = 0.5f)
+            )
+            if(allowFailed){
+                FailureOption(
+                    onClick = onFailureSelected
+                )
             }
         }
     }
@@ -134,12 +131,6 @@ private fun StatusOption(
             description = stringResource(R.string.status_emergency_description)
             icon = Icons.Outlined.FavoriteBorder
         }
-
-        DailyStatus.FAILED -> {
-            title = stringResource(R.string.status_failed_title)
-            description = stringResource(R.string.status_failed_description)
-            icon = Icons.Outlined.Cancel
-        }
     }
 
     Row(
@@ -171,6 +162,38 @@ private fun StatusOption(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun FailureOption(
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.WarningAmber,
+            contentDescription = null,
+            modifier = Modifier.size(28.dp),
+            tint = MaterialTheme.colorScheme.error
+        )
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.status_failure_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.error
             )
         }
     }

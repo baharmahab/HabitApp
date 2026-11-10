@@ -148,5 +148,5 @@
 
     <string name="continue_with_previous_settings">Continue with previous settings</string>
     <string name="start_next_cycle">Start new cycle</string>
-
+    <string name="status_failure_title">I couldn\'t do it today</string>
 </resources>

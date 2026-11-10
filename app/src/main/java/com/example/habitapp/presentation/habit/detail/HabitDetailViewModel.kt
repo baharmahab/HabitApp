@@ -12,7 +12,7 @@ import com.example.habitapp.domain.usecase.GetHabitByIdUseCase
 import com.example.habitapp.domain.usecase.GetHabitCardStateUseCase
 import com.example.habitapp.domain.usecase.GetHabitCycleSummaryUseCase
 import com.example.habitapp.domain.usecase.ObserveHabitDaysUseCase
-import com.example.habitapp.domain.usecase.RestartHabitCycleUseCase
+import com.example.habitapp.domain.usecase.RestartFailedHabitCycleUseCase
 import com.example.habitapp.domain.usecase.SetDailyStatusUseCase
 import com.example.habitapp.domain.usecase.UpdateHabitUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,9 +34,10 @@ class HabitDetailViewModel @Inject constructor(
     private val updateHabitUseCase: UpdateHabitUseCase,
     private val setDailyStatusUseCase: SetDailyStatusUseCase,
     private val observeHabitDaysUseCase: ObserveHabitDaysUseCase,
-    private val restartHabitCycleUseCase: RestartHabitCycleUseCase,
+    private val restartHabitCycleUseCase: RestartFailedHabitCycleUseCase,
     private val getHabitCycleSummaryUseCase: GetHabitCycleSummaryUseCase,
-    private val getHabitCardStateUseCase: GetHabitCardStateUseCase
+    private val getHabitCardStateUseCase: GetHabitCardStateUseCase,
+    private val restartFailedHabitCycleUseCase: RestartFailedHabitCycleUseCase
 ) : ViewModel() {
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -113,27 +114,13 @@ class HabitDetailViewModel @Inject constructor(
 
                 observeHabitDaysJob?.cancel()
 
-                var isFirstEmission = true
-
                 observeHabitDaysJob = observeHabitDaysUseCase(habitId)
                     .onEach { habitDays ->
-
-                        val shouldRestoreFailureSheet =
-                            isFirstEmission &&
-                                    habitDays.any {
-                                        it.status == DailyStatus.FAILED
-                                    }
-
-                        isFirstEmission = false
-
                         _uiState.update { state ->
                             state.copy(
                                 dailyStatuses = habitDays.associate { day ->
                                     day.date to day.status
                                 },
-                                showCycleFailureSheet =
-                                    state.showCycleFailureSheet ||
-                                            shouldRestoreFailureSheet,
                                 error = null
                             )
                         }
@@ -344,13 +331,13 @@ class HabitDetailViewModel @Inject constructor(
                         // وضعیت نمایش دعوت‌نامه پایان چله
                         isCycleCompleted = shouldShowCycleInvitation,
 
-                        // نمایش BottomSheet پایان چله
+                       /* // نمایش BottomSheet پایان چله
                         showCycleCompletionSheet =
                             isCycleCompleted || state.showCycleCompletionSheet,
 
                         // نمایش BottomSheet شکست چله
                         showCycleFailureSheet =
-                            isCycleFailed || state.showCycleFailureSheet,
+                            isCycleFailed || state.showCycleFailureSheet,*/
 
                         error = null
                     )
@@ -406,8 +393,8 @@ class HabitDetailViewModel @Inject constructor(
                         isCycleCompleted = false,
                         dailyStatuses = emptyMap(),
                         completedCycleSummary = null,
-                        showCycleCompletionSheet = false,
-                        showCycleFailureSheet = false,
+                        /*showCycleCompletionSheet = false,
+                        showCycleFailureSheet = false,*/
                         error = null
                     )
                 }
@@ -423,7 +410,70 @@ class HabitDetailViewModel @Inject constructor(
             }
         }
     }
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun restartFailedHabitCycle() {
+        val habit = currentHabit ?: return
 
+        viewModelScope.launch {
+
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    error = null
+                )
+            }
+
+            try {
+                restartFailedHabitCycleUseCase(
+                    habitId = habit.id,
+                    newStartDate = LocalDate.now()
+                )
+
+                val updatedHabit = getHabitByIdUseCase(habit.id)
+                    ?: throw IllegalArgumentException("Habit not found.")
+
+                currentHabit = updatedHabit
+
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+
+                        habit = updatedHabit,
+                        habitName = updatedHabit.name,
+
+                        startDate = updatedHabit.startDate,
+                        nextPendingDate = updatedHabit.nextPendingDate,
+
+                        normal = updatedHabit.normal,
+                        special = updatedHabit.special,
+                        emergency = updatedHabit.emergency,
+                        finalGoal = updatedHabit.finalGoal,
+
+                        isConfigured = updatedHabit.isConfigured,
+
+                        // وضعیت چله جدید
+                        streakDays = 0,
+                        isCycleCompleted = false,
+                        // پاک کردن خلاصه چله قبلی از وضعیت صفحه
+                        completedCycleSummary = null,
+
+                        error = null
+                    )
+                }
+
+            } catch (e: Exception) {
+
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = e.message
+                            ?: "شروع دوبارهٔ چله شکست‌خورده انجام نشد."
+                    )
+                }
+            }
+        }
+    }
+/*
     @RequiresApi(Build.VERSION_CODES.O)
     fun dismissCycleCompletionSheet() {
         _uiState.update {
@@ -436,7 +486,7 @@ class HabitDetailViewModel @Inject constructor(
         _uiState.update {
             it.copy(showCycleFailureSheet = false)
         }
-    }
+    }*/
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun calculateStreakDays(

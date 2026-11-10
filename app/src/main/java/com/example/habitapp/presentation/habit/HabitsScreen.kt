@@ -32,10 +32,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.habitapp.domain.model.HabitCardState
 import com.example.habitapp.presentation.habit.component.AddHabitBottomSheet
-import com.example.habitapp.presentation.habit.component.ConfigureHabitBottomSheet
-import com.example.habitapp.presentation.habit.component.CycleCompletionBottomSheet
+import com.example.habitapp.presentation.component.bottomSheet.ConfigureHabitBottomSheet
+import com.example.habitapp.presentation.component.bottomSheet.CycleCompletionBottomSheet
 import com.example.habitapp.presentation.habit.component.CycleInvitationState
-import com.example.habitapp.presentation.habit.component.DailyStatusDialog
+import com.example.habitapp.presentation.component.bottomSheet.DailyStatusBottomSheet
 import com.example.habitapp.presentation.habit.component.DeleteHabitBottomSheet
 import com.example.habitapp.presentation.habit.component.HabitItem
 import com.example.habitapp.presentation.habit.component.HabitsTopBar
@@ -342,7 +342,7 @@ fun HabitsScreen(
         }
 
         is HabitSheet.DailyStatus -> {
-            DailyStatusDialog(
+            DailyStatusBottomSheet(
                 allowFailed = false,
                 onStatusSelected = { status ->
                     viewModel.setDailyStatus(
@@ -352,6 +352,9 @@ fun HabitsScreen(
 
                     currentSheet = null
                     revealedHabitId = null
+                },
+                onFailureSelected = {
+
                 },
                 onDismiss = {
                     currentSheet = null

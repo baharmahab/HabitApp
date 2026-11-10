@@ -14,17 +14,12 @@
     data class HabitCycleSummaryEntity(
         @PrimaryKey(autoGenerate = true)
         val id: Long = 0,
-
         val habitId: Long,
         val cycleNumber: Int,
-
         val startDate: String,
         val endDate: String,
-
         val normalCount: Int,
         val specialCount: Int,
         val emergencyCount: Int,
-        val failedCount: Int,
-
-        val completedAt: String
+        val isFailed: Boolean
     )

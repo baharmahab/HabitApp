@@ -146,6 +146,6 @@
 
     <string name="continue_with_previous_settings">ادامه با تنظیمات قبلی</string>
     <string name="start_next_cycle">شروع چله جدید</string>
-
+    <string name="status_failure_title">امروز نتوانستم انجام بدم</string>
 
 </resources>
