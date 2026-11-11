@@ -21,4 +21,5 @@ sealed interface HabitDetailSheet {
 
     data object CycleFailure : HabitDetailSheet
 
+
 }

@@ -60,5 +60,16 @@ interface HabitDayDao {
 
     @Query("DELETE FROM habit_days WHERE habitId = :habitId")
     suspend fun deleteHabitDaysByHabitId(habitId: Long)
+//--------------------------------------------------------------------------------
+    @Query("""
+    DELETE FROM habit_days
+    WHERE habitId = :habitId
+    AND date BETWEEN :startDate AND :endDate
+""")
+    suspend fun deleteHabitDaysByDateRange(
+        habitId: Long,
+        startDate: String,
+        endDate: String
+    )
 
 }

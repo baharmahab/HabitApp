@@ -42,6 +42,12 @@ fun HabitDetailScreen(
     var currentSheet by remember(habitId) {
         mutableStateOf<HabitDetailSheet?>(null)
     }
+    // نمایش شیت پایان چله بر اساس رویداد ViewModel
+    LaunchedEffect(uiState.showCycleCompletionSheet) {
+        if (uiState.showCycleCompletionSheet) {
+            currentSheet = HabitDetailSheet.CycleCompletion
+        }
+    }
 
     // بارگذاری اطلاعات عادت
     LaunchedEffect(habitId) {

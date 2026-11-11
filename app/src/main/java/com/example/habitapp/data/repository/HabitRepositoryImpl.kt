@@ -8,6 +8,8 @@ import com.example.habitapp.data.local.dao.HabitCycleSummaryDao
 import com.example.habitapp.data.local.dao.HabitDao
 import com.example.habitapp.data.local.dao.HabitDayDao
 import com.example.habitapp.data.local.entity.HabitCycleSummaryEntity
+import com.example.habitapp.data.local.entity.HabitDayEntity
+import com.example.habitapp.data.local.entity.HabitEntity
 import com.example.habitapp.data.mapper.toDomain
 import com.example.habitapp.data.mapper.toEntity
 import com.example.habitapp.domain.model.DailyStatus
@@ -129,7 +131,7 @@ class HabitRepositoryImpl @Inject constructor(
             )
         }
     }
-    @RequiresApi(Build.VERSION_CODES.O)
+  /*  @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun restartFailedHabitCycle(
         habitId: Long,
         newStartDate: LocalDate
@@ -190,7 +192,7 @@ class HabitRepositoryImpl @Inject constructor(
                 )
             )
         }
-    }
+    }*/
 
     @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun saveCycleSummary(
@@ -211,28 +213,171 @@ class HabitRepositoryImpl @Inject constructor(
 
         return entity.toDomain()
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun saveDailyStatusAtomically(
         habitDay: HabitDay,
         updatedHabit: Habit
     ) {
         database.withTransaction {
+
             val currentHabit = habitDao.getHabitById(habitDay.habitId)
                 ?: throw IllegalArgumentException("Habit not found.")
 
-            // اطمینان از اینکه اطلاعات مربوط به یک عادت هستند
             require(updatedHabit.id == habitDay.habitId) {
                 "Habit ID mismatch."
             }
 
+            // ذخیره وضعیت روز
+            habitDayDao.upsertHabitDay(habitDay.toEntity())
+
+            // به‌روزرسانی اطلاعات عادت
+            habitDao.updateHabit(updatedHabit.toEntity())
         }
-
-        // ۱. ذخیره وضعیت روز
-        habitDayDao.upsertHabitDay(habitDay.toEntity())
-
-        // ۴. به‌روزرسانی اطلاعات عادت
-        habitDao.updateHabit(updatedHabit.toEntity())
     }
 
+//----------------------------------------------------------------------------------------------
+
+    private suspend fun saveCycleSummary(
+    habit: HabitEntity,
+    habitDays: List<HabitDayEntity>,
+    endDate: LocalDate,
+    isFailed: Boolean
+    ) {
+        val existingSummary = habitCycleSummaryDao.getSummary(
+            habitId = habit.id,
+            cycleNumber = habit.cycleNumber
+        )
+
+        if (existingSummary != null) return
+
+        habitCycleSummaryDao.insertSummary(
+            HabitCycleSummaryEntity(
+                habitId = habit.id,
+                cycleNumber = habit.cycleNumber,
+                startDate = habit.startDate,
+                endDate = endDate.toString(),
+                normalCount = habitDays.count {
+                    it.status == DailyStatus.NORMAL
+                },
+                specialCount = habitDays.count {
+                    it.status == DailyStatus.SPECIAL
+                },
+                emergencyCount = habitDays.count {
+                    it.status == DailyStatus.EMERGENCY
+                },
+                isFailed = isFailed
+            )
+        )
+    }
+    private suspend fun getHabitOrThrow(
+        habitId: Long
+    ): HabitEntity {
+        return habitDao.getHabitById(habitId)
+            ?: throw IllegalArgumentException("Habit not found.")
+    }
+    private suspend fun clearPreviousCycleDays(
+        habitId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ) {
+        habitDayDao.deleteHabitDaysByDateRange(
+            habitId = habitId,
+            startDate = startDate.toString(),
+            endDate = endDate.toString()
+        )
+    }
+    private suspend fun updateHabitForNextCycle(
+        habit: HabitEntity,
+        newStartDate: LocalDate,
+        isFailed: Boolean
+    ) {
+        habitDao.updateHabit(
+            habit.copy(
+                startDate = newStartDate.toString(),
+                cycleNumber = habit.cycleNumber + 1,
+                nextPendingDate = newStartDate.toString(),
+                successfulCycleStreak = if (isFailed) {
+                    0
+                } else {
+                    habit.successfulCycleStreak + 1
+                }
+            )
+        )
+    }
+    //---------------------------------------------------------------------------------------------
+    @RequiresApi(Build.VERSION_CODES.O)
+    override suspend fun restartFailedHabitCycle(
+        habitId: Long,
+        newStartDate: LocalDate
+    ) {
+        database.withTransaction {
+            val habit = getHabitOrThrow(habitId)
+
+            val endDate = newStartDate.minusDays(1)
+
+            val habitDays = habitDayDao.getHabitDays(habitId)
+                .filter {
+                    val date = LocalDate.parse(it.date)
+                    date >= LocalDate.parse(habit.startDate) &&
+                            date <= endDate
+                }
+
+            saveCycleSummary(
+                habit = habit,
+                habitDays = habitDays,
+                endDate = endDate,
+                isFailed = true // در چله موفق false
+            )
+
+            clearPreviousCycleDays(
+                habitId = habitId,
+                startDate = LocalDate.parse(habit.startDate),
+                endDate = endDate
+            )
+
+            updateHabitForNextCycle(
+                habit = habit,
+                newStartDate = newStartDate,
+                isFailed = true
+            )
+        }
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    override suspend fun startNextHabitCycle(
+        habitId: Long,
+        newStartDate: LocalDate
+    ) {
+        database.withTransaction {
+            val habit = getHabitOrThrow(habitId)
+
+            val endDate = newStartDate.minusDays(1)
+
+            val habitDays = habitDayDao.getHabitDays(habitId)
+                .filter {
+                    val date = LocalDate.parse(it.date)
+                    date >= LocalDate.parse(habit.startDate) &&
+                            date <= endDate
+                }
+            saveCycleSummary(
+                habit = habit,
+                habitDays = habitDays,
+                endDate = endDate,
+                isFailed = true // در چله موفق false
+            )
+
+            clearPreviousCycleDays(
+                habitId = habitId,
+                startDate = LocalDate.parse(habit.startDate),
+                endDate = endDate
+            )
+
+            updateHabitForNextCycle(
+                habit = habit,
+                newStartDate = newStartDate,
+                isFailed = false
+            )
+        }
+    }
 
 }

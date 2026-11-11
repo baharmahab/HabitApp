@@ -60,6 +60,7 @@ class SetDailyStatusUseCase @Inject constructor(
             habit.startDate,
             date
         ) + 1
+        println(">>> dayNumber = $dayNumber")
 
         val isCompletingCycle =
             isNextPendingDate &&

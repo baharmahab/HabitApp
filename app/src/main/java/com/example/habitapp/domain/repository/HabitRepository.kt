@@ -49,11 +49,6 @@ interface HabitRepository {
         habitId: Long,
         newStartDate: LocalDate
     )
-    @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun restartFailedHabitCycle(
-        habitId: Long,
-        newStartDate: LocalDate = LocalDate.now()
-    )
     suspend fun saveCycleSummary(
         summary: HabitCycleSummary
     )
@@ -66,5 +61,14 @@ interface HabitRepository {
         habitDay: HabitDay,
         updatedHabit: Habit
     )
-
+//-------------------------------------------------------
+suspend fun startNextHabitCycle(
+    habitId: Long,
+    newStartDate: LocalDate
+)
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun restartFailedHabitCycle(
+        habitId: Long,
+        newStartDate: LocalDate = LocalDate.now()
+    )
 }

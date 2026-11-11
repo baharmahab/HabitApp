@@ -182,6 +182,7 @@ fun HabitsScreen(
                                         currentSheet =
                                             if (habit.isConfigured) {
                                                 HabitSheet.DailyStatus(habit.id)
+
                                             } else {
                                                 HabitSheet.ConfigureHabit(habit.id)
                                             }

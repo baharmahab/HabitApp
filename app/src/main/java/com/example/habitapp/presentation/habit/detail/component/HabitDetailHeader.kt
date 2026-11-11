@@ -58,7 +58,7 @@ fun HabitDetailHeader(
         Text(
             text = stringResource(
                 R.string.streak_day_in_cycle,
-                numberFormat.format(successfulCycleStreak)
+                numberFormat.format(successfulCycleStreak + 1)
             ),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant

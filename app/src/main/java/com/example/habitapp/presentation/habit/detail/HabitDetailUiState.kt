@@ -36,5 +36,6 @@ data class HabitDetailUiState(
     val successfulCycleStreak: Int = 0,
     val isCycleCompleted: Boolean = false,
     val completedCycleSummary: HabitCycleSummary? = null,
-    val error: String? = null
+    val error: String? = null,
+    val showCycleCompletionSheet: Boolean = false
 )

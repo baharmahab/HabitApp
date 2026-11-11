@@ -270,6 +270,7 @@ class HabitDetailViewModel @Inject constructor(
         }
     }
 
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun setDailyStatus(
         date: LocalDate,
@@ -286,39 +287,37 @@ class HabitDetailViewModel @Inject constructor(
             }
 
             try {
+                // 1. ثبت وضعیت روزانه
                 val result = setDailyStatusUseCase(
                     habitId = habit.id,
                     date = date,
                     status = status
                 )
 
-                val isCycleCompleted =
-                    result is SetDailyStatusResult.CycleCompleted
-
-                val isCycleFailed =
-                    result is SetDailyStatusResult.CycleFailed
-
+                // 2. دریافت اطلاعات به‌روز عادت
                 val updatedHabit = getHabitByIdUseCase(habit.id)
                     ?: throw IllegalArgumentException("Habit not found.")
 
                 currentHabit = updatedHabit
 
-                // بررسی وضعیت واقعی پایان چله
-                val shouldShowCycleInvitation =
-                    getHabitCardStateUseCase(updatedHabit.id) ==
-                            HabitCardState.CYCLE_COMPLETED
+                val isCycleCompleted =
+                    result == SetDailyStatusResult.CycleCompleted
 
                 _uiState.update { state ->
                     state.copy(
                         isLoading = false,
+
                         habit = updatedHabit,
                         habitName = updatedHabit.name,
+
                         startDate = updatedHabit.startDate,
                         nextPendingDate = updatedHabit.nextPendingDate,
+
                         normal = updatedHabit.normal,
                         special = updatedHabit.special,
                         emergency = updatedHabit.emergency,
                         finalGoal = updatedHabit.finalGoal,
+
                         isConfigured = updatedHabit.isConfigured,
 
                         streakDays = calculateStreakDays(
@@ -326,23 +325,21 @@ class HabitDetailViewModel @Inject constructor(
                             nextPendingDate = updatedHabit.nextPendingDate
                         ),
 
-                        // تقویم فعلی حفظ می‌شود.
-                        dailyStatuses = state.dailyStatuses,
+                        successfulCycleStreak =
+                            updatedHabit.successfulCycleStreak,
 
-                        // وضعیت نمایش دعوت‌نامه پایان چله
-                        isCycleCompleted = shouldShowCycleInvitation,
+                        isCycleCompleted = isCycleCompleted,
 
-                        /* // نمایش BottomSheet پایان چله
-                         showCycleCompletionSheet =
-                             isCycleCompleted || state.showCycleCompletionSheet,
-
-                         // نمایش BottomSheet شکست چله
-                         showCycleFailureSheet =
-                             isCycleFailed || state.showCycleFailureSheet,*/
+                        // نمایش تبریک پایان چله
+                        showCycleCompletionSheet =
+                            isCycleCompleted,
 
                         error = null
                     )
                 }
+
+                println(">>> SetDailyStatusResult = $result")
+                println(">>> CycleCompleted = $isCycleCompleted")
 
             } catch (e: Exception) {
                 _uiState.update {
@@ -354,6 +351,7 @@ class HabitDetailViewModel @Inject constructor(
             }
         }
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun restartHabitCycle() {
@@ -502,5 +500,10 @@ class HabitDetailViewModel @Inject constructor(
             .between(startDate, nextPendingDate)
             .toInt()
             .coerceAtLeast(0)
+    }
+    fun dismissCycleCompletionSheet() {
+        _uiState.update {
+            it.copy(showCycleCompletionSheet = false)
+        }
     }
 }
