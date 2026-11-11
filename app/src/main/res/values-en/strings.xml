@@ -148,5 +148,10 @@
 
     <string name="continue_with_previous_settings">Continue with previous settings</string>
     <string name="start_next_cycle">Start new cycle</string>
+    <string name="status_not_done_title">I couldn\'t do it today</string>
+    <string name="streak_day_in_cycle">
+    Day of persistence in cycle %1$s
+</string>
+
 
 </resources>

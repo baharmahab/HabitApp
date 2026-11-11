@@ -31,15 +31,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.habitapp.domain.model.HabitCardState
-import com.example.habitapp.presentation.habit.component.AddHabitBottomSheet
-import com.example.habitapp.presentation.habit.component.ConfigureHabitBottomSheet
-import com.example.habitapp.presentation.habit.component.CycleCompletionBottomSheet
 import com.example.habitapp.presentation.habit.component.CycleInvitationState
-import com.example.habitapp.presentation.habit.component.DailyStatusDialog
-import com.example.habitapp.presentation.habit.component.DeleteHabitBottomSheet
 import com.example.habitapp.presentation.habit.component.HabitItem
 import com.example.habitapp.presentation.habit.component.HabitsTopBar
-import com.example.habitapp.presentation.habit.component.StartNextCycleBottomSheet
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -63,6 +57,7 @@ fun HabitsScreen(
         mutableStateOf<Long?>(null)
     }
 
+    // نمایش شیت تکمیل چله بر اساس رویداد ViewModel
     LaunchedEffect(uiState.showCycleCompletionSheet) {
         if (uiState.showCycleCompletionSheet) {
             currentSheet = HabitSheet.CycleCompletion
@@ -152,13 +147,11 @@ fun HabitsScreen(
                             uiState.habitCardStates[habit.id]
                                 ?: HabitCardState.READY
 
-                        // محاسبه شماره روز فقط در HabitsScreen
                         val dayNumber = ChronoUnit.DAYS.between(
                             habit.startDate,
                             LocalDate.now()
                         ) + 1L
 
-                        // تعیین وضعیت دعوت به چله جدید
                         val cycleInvitationState =
                             if (cardState == HabitCardState.CYCLE_COMPLETED) {
                                 when {
@@ -178,11 +171,8 @@ fun HabitsScreen(
                             habit = habit,
                             todayStatus = uiState.todayStatuses[habit.id],
                             cardState = cardState,
-
-                            // انتقال وضعیت به کارت، بدون انتقال dayNumber
                             cycleInvitationState = cycleInvitationState,
 
-                            // کلیک روی دایره وضعیت
                             onStatusCircleClick = {
                                 revealedHabitId = null
 
@@ -213,7 +203,6 @@ fun HabitsScreen(
                                 }
                             },
 
-                            // کلیک روی بدنه کارت
                             onCardClick = {
                                 if (revealedHabitId == habit.id) {
                                     revealedHabitId = null
@@ -274,106 +263,55 @@ fun HabitsScreen(
         }
     }
 
-    // مدیریت متمرکز BottomSheetها
-    when (val sheet = currentSheet) {
+    // تنها محل نمایش و مدیریت UI مربوط به BottomSheetها
+    HabitSheetHost(
+        sheet = currentSheet,
+        uiState = uiState,
 
-        HabitSheet.AddHabit -> {
-            AddHabitBottomSheet(
-                onDismiss = {
-                    currentSheet = null
-                },
-                onCreateHabit = { name ->
-                    viewModel.createHabit(name)
-                    currentSheet = null
-                    revealedHabitId = null
-                }
+        onDismiss = {
+            currentSheet = null
+            revealedHabitId = null
+        },
+
+        onCreateHabit = { name ->
+            viewModel.createHabit(name)
+            currentSheet = null
+            revealedHabitId = null
+        },
+
+        onUpdateHabit = { habit, onResult ->
+            viewModel.updateHabit(
+                habit = habit,
+                onResult = onResult
             )
-        }
+        },
 
-        is HabitSheet.ConfigureHabit -> {
-            val habit = uiState.habits.firstOrNull {
-                it.id == sheet.habitId
-            }
+        onDeleteHabit = { habitId ->
+            viewModel.deleteHabit(habitId)
+            currentSheet = null
+            revealedHabitId = null
+        },
 
-            habit?.let { selectedHabit ->
-                ConfigureHabitBottomSheet(
-                    habit = selectedHabit,
-                    error = uiState.error,
-                    mode = sheet.mode,
-                    onDismiss = {
-                        currentSheet = null
-                    },
-                    onSave = { updatedHabit, onResult ->
-                        viewModel.updateHabit(
-                            habit = updatedHabit,
-                            onResult = onResult
-                        )
-                    }
-                )
-            }
-        }
-
-        is HabitSheet.DeleteHabit -> {
-            val habit = uiState.habits.firstOrNull {
-                it.id == sheet.habitId
-            }
-
-            DeleteHabitBottomSheet(
-                habitName = habit?.name ?: "این عادت",
-                onDismiss = {
-                    currentSheet = null
-                    revealedHabitId = null
-                },
-                onConfirmDelete = {
-                    viewModel.deleteHabit(sheet.habitId)
-                    currentSheet = null
-                    revealedHabitId = null
-                }
+        onSetDailyStatus = { habitId, status ->
+            viewModel.setDailyStatus(
+                habitId = habitId,
+                status = status
             )
+            currentSheet = null
+            revealedHabitId = null
+        },
+
+        onDismissCycleCompletion = {
+            currentSheet = null
+            viewModel.dismissCycleCompletionSheet()
+        },
+
+        onContinueWithPreviousSettings = {
+            // منطق شروع چله جدید در مرحله بعد متصل می‌شود.
+        },
+
+        onUpdateSettings = { habitId ->
+            currentSheet = HabitSheet.ConfigureHabit(habitId)
         }
-
-        is HabitSheet.CycleCompletion -> {
-            CycleCompletionBottomSheet(
-                onDismiss = {
-                    currentSheet = null
-                    viewModel.dismissCycleCompletionSheet()
-                }
-            )
-        }
-
-        is HabitSheet.DailyStatus -> {
-            DailyStatusDialog(
-                allowFailed = false,
-                onStatusSelected = { status ->
-                    viewModel.setDailyStatus(
-                        habitId = sheet.habitId,
-                        status = status
-                    )
-
-                    currentSheet = null
-                    revealedHabitId = null
-                },
-                onDismiss = {
-                    currentSheet = null
-                }
-            )
-        }
-
-        is HabitSheet.StartNextCycle -> {
-            StartNextCycleBottomSheet(
-                onContinueWithPreviousSettings = {
-                    // منطق شروع چله جدید در مرحله بعد متصل می‌شود.
-                },
-                onUpdateSettings = {
-                    currentSheet =
-                        HabitSheet.ConfigureHabit(sheet.habitId)
-                },
-                onDismiss = {
-                    currentSheet = null
-                }
-            )
-        }
-
-        null -> Unit
-    }
+    )
 }

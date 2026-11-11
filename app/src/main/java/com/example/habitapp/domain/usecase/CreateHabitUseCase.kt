@@ -30,6 +30,7 @@ class CreateHabitUseCase @Inject constructor(
             emergency = "",
             finalGoal = "",
             cycleNumber = 1,
+            successfulCycleStreak = 0,
             nextPendingDate = startDate
         )
 

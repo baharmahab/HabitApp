@@ -1,4 +1,3 @@
-
 package com.example.habitapp.data.mapper
 
 import android.os.Build
@@ -10,6 +9,7 @@ import java.time.LocalDate
 @RequiresApi(Build.VERSION_CODES.O)
 fun HabitCycleSummary.toEntity(): HabitCycleSummaryEntity {
     return HabitCycleSummaryEntity(
+        id = id,
         habitId = habitId,
         cycleNumber = cycleNumber,
         startDate = startDate.toString(),
@@ -17,14 +17,14 @@ fun HabitCycleSummary.toEntity(): HabitCycleSummaryEntity {
         normalCount = normalCount,
         specialCount = specialCount,
         emergencyCount = emergencyCount,
-        failedCount = failedCount,
-        completedAt = completedAt.toString()
+        isFailed = isFailed
     )
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun HabitCycleSummaryEntity.toDomain(): HabitCycleSummary {
     return HabitCycleSummary(
+        id = id,
         habitId = habitId,
         cycleNumber = cycleNumber,
         startDate = LocalDate.parse(startDate),
@@ -32,7 +32,6 @@ fun HabitCycleSummaryEntity.toDomain(): HabitCycleSummary {
         normalCount = normalCount,
         specialCount = specialCount,
         emergencyCount = emergencyCount,
-        failedCount = failedCount,
-        completedAt = LocalDate.parse(completedAt)
+        isFailed = isFailed
     )
 }

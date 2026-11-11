@@ -123,9 +123,70 @@ class HabitRepositoryImpl @Inject constructor(
             habitDao.updateHabit(
                 habit.copy(
                     startDate = newStartDate.toString(),
-                    nextPendingDate = newStartDate.toString(),
                     cycleNumber = 1,
-                    awaitingCycleConfirmation = false
+                    nextPendingDate = newStartDate.toString()
+                )
+            )
+        }
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    override suspend fun restartFailedHabitCycle(
+        habitId: Long,
+        newStartDate: LocalDate
+    ) {
+        database.withTransaction {
+
+            // 1. دریافت اطلاعات عادت
+            val habit = habitDao.getHabitById(habitId)
+                ?: throw IllegalArgumentException("Habit not found.")
+
+            // 2. دریافت روزهای چله شکست‌خورده
+            val habitDays = habitDayDao.getHabitDays(habitId)
+
+            // 3. محاسبه آمار چله
+            val normalCount = habitDays.count {
+                it.status == DailyStatus.NORMAL
+            }
+
+            val specialCount = habitDays.count {
+                it.status == DailyStatus.SPECIAL
+            }
+
+            val emergencyCount = habitDays.count {
+                it.status == DailyStatus.EMERGENCY
+            }
+
+            // 4. ذخیره خلاصه چله شکست‌خورده
+            val existingSummary = habitCycleSummaryDao.getSummary(
+                habitId = habitId,
+                cycleNumber = habit.cycleNumber
+            )
+
+            if (existingSummary == null) {
+                habitCycleSummaryDao.insertSummary(
+                    HabitCycleSummaryEntity(
+                        habitId = habitId,
+                        cycleNumber = habit.cycleNumber,
+                        startDate = habit.startDate,
+                        endDate = newStartDate.minusDays(1).toString(),
+                        normalCount = normalCount,
+                        specialCount = specialCount,
+                        emergencyCount = emergencyCount,
+                        isFailed = true
+                    )
+                )
+            }
+
+            // 5. حذف روزهای چله قبلی
+            habitDayDao.deleteHabitDaysByHabitId(habitId)
+
+            // 6. شروع چله جدید
+            habitDao.updateHabit(
+                habit.copy(
+                    startDate = newStartDate.toString(),
+                    cycleNumber = habit.cycleNumber + 1,
+                    nextPendingDate = newStartDate.toString(),
+                    successfulCycleStreak = 0
                 )
             )
         }
@@ -164,14 +225,14 @@ class HabitRepositoryImpl @Inject constructor(
                 "Habit ID mismatch."
             }
 
-            }
-
-            // ۱. ذخیره وضعیت روز
-            habitDayDao.upsertHabitDay(habitDay.toEntity())
-
-            // ۴. به‌روزرسانی اطلاعات عادت
-            habitDao.updateHabit(updatedHabit.toEntity())
         }
+
+        // ۱. ذخیره وضعیت روز
+        habitDayDao.upsertHabitDay(habitDay.toEntity())
+
+        // ۴. به‌روزرسانی اطلاعات عادت
+        habitDao.updateHabit(updatedHabit.toEntity())
+    }
 
 
 }

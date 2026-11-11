@@ -18,6 +18,7 @@ fun HabitEntity.toDomain(): Habit {
         emergency = emergency,
         finalGoal = finalGoal,
         cycleNumber = cycleNumber,
+        successfulCycleStreak= successfulCycleStreak,
         nextPendingDate = LocalDate.parse(nextPendingDate)
     )
 }
@@ -32,6 +33,7 @@ fun Habit.toEntity(): HabitEntity {
         emergency = emergency,
         finalGoal = finalGoal,
         cycleNumber = cycleNumber,
+        successfulCycleStreak = successfulCycleStreak,
         nextPendingDate = nextPendingDate.toString()
     )
 }

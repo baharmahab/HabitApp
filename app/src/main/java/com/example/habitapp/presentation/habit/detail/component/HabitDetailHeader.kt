@@ -22,6 +22,7 @@ import java.text.NumberFormat
 fun HabitDetailHeader(
     habitName: String,
     streakDays: Int,
+    successfulCycleStreak: Int,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -46,16 +47,19 @@ fun HabitDetailHeader(
         val configuration = LocalConfiguration.current
         val locale = configuration.locales[0]
 
+        val numberFormat = NumberFormat.getIntegerInstance(locale)
+
         Text(
-            text = NumberFormat
-                .getIntegerInstance(locale)
-                .format(streakDays),
+            text = numberFormat.format(streakDays),
             style = MaterialTheme.typography.displayLarge,
             color = MaterialTheme.colorScheme.primary
         )
 
         Text(
-            text = stringResource(R.string.streak_days),
+            text = stringResource(
+                R.string.streak_day_in_cycle,
+                numberFormat.format(successfulCycleStreak)
+            ),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
