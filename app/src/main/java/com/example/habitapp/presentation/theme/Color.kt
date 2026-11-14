@@ -1,98 +1,100 @@
+
 package com.example.habitapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
 // ==========================================
-// Brand - Fresh & Cheerful
+// Brand
 // ==========================================
 
-val GreenPrimary = Color(0xFF27865A)
+val GreenPrimary = Color(0xFF6FAF8F)
 val GreenOnPrimary = Color(0xFFFFFFFF)
 
-val GreenPrimaryContainer = Color(0xFFD8F5E4)
-val GreenOnPrimaryContainer = Color(0xFF174B31)
+val GreenPrimaryDark = Color(0xFF4F8068)
 
-// Bright Green - Decorative & Progress
-val GreenBright = Color(0xFF45B97C)
+val GreenPrimaryContainer = Color(0xFFDDEEE4)
+val GreenOnPrimaryContainer = Color(0xFF294F3C)
+
+val GreenBright = Color(0xFF8CB9A2)
 
 // ==========================================
 // App Background & Surfaces
 // ==========================================
 
-val AppBackground = Color(0xFFFFF8EA)
-val TopBarBackground = Color(0xFFFFF2D6)
+val AppBackground = Color(0xFFF7F4EC)
+val TopBarBackground = Color(0xFFF0EEE6)
 
-val AppSurface = Color(0xFFFFFDF7)
-val AppSurfaceVariant = Color(0xFFF5EDDC)
+val AppSurface = Color(0xFFFFFDF8)
+val AppSurfaceVariant = Color(0xFFF0EEE6)
 
 // ==========================================
-// Secondary - Sky Blue
+// Secondary - Calm Blue
 // ==========================================
 
-val BlueSecondary = Color(0xFF327CA8)
+val BlueSecondary = Color(0xFF648BA9)
 val BlueOnSecondary = Color(0xFFFFFFFF)
 
-val BlueSecondaryContainer = Color(0xFFDCEFFD)
-val BlueOnSecondaryContainer = Color(0xFF194765)
+val BlueSecondaryContainer = Color(0xFFDFEAF3)
+val BlueOnSecondaryContainer = Color(0xFF35566F)
 
 // ==========================================
-// Tertiary - Sunshine Yellow
+// Tertiary - Warm Yellow
 // ==========================================
 
-val YellowTertiary = Color(0xFFF4B942)
-val YellowOnTertiary = Color(0xFF49370C)
+val YellowTertiary = Color(0xFFC99A53)
+val YellowOnTertiary = Color(0xFF35250D)
 
-val YellowTertiaryContainer = Color(0xFFFFE9B3)
-val YellowOnTertiaryContainer = Color(0xFF59400B)
+val YellowTertiaryContainer = Color(0xFFF7E9D3)
+val YellowOnTertiaryContainer = Color(0xFF66491F)
 
 // ==========================================
 // Accent Colors
 // ==========================================
 
-val AccentCoral = Color(0xFFFF8A65)
-val AccentPink = Color(0xFFE8789A)
+val AccentCoral = Color(0xFFD98D78)
+val AccentPink = Color(0xFFD99BAA)
 
 // ==========================================
 // Text
 // ==========================================
 
-val TextPrimary = Color(0xFF26332C)
-val TextSecondary = Color(0xFF65736B)
+val TextPrimary = Color(0xFF28332D)
+val TextSecondary = Color(0xFF68736D)
 val TextDisabled = Color(0xFF929B94)
 
 // ==========================================
 // Borders & Separators
 // ==========================================
 
-val AppOutline = Color(0xFFEAE4D7)
-val AppDivider = Color(0xFFF0EBDD)
+val AppOutline = Color(0xFFE4E2DA)
+val AppDivider = Color(0xFFECEAE2)
 
 // ==========================================
 // Daily Status Colors
 // ==========================================
 
-// Normal - According to plan
-val StatusNormal = Color(0xFF27865A)
-val StatusNormalContainer = Color(0xFFD8F5E4)
+// Normal
+val StatusNormal = Color(0xFF4F8068)
+val StatusNormalContainer = Color(0xFFDDEEE4)
 
-// Special - Adapted to circumstances
-val StatusSpecial = Color(0xFF327CA8)
-val StatusSpecialContainer = Color(0xFFDCEFFD)
+// Special
+val StatusSpecial = Color(0xFF557E9F)
+val StatusSpecialContainer = Color(0xFFDFEAF3)
 
-// Emergency - Minimum effort
-val StatusEmergency = Color(0xFF8062B5)
-val StatusEmergencyContainer = Color(0xFFECE4FA)
+// Emergency
+val StatusEmergency = Color(0xFFA9793E)
+val StatusEmergencyContainer = Color(0xFFF7E9D3)
 
-// Failed - Gentle warning
-val StatusFailed = Color(0xFFDF6868)
-val StatusFailedContainer = Color(0xFFFBE5E3)
+// Failed
+val StatusFailed = Color(0xFFBF6560)
+val StatusFailedContainer = Color(0xFFF6E4E1)
 
 // ==========================================
 // Semantic Colors
 // ==========================================
 
-val AppSuccess = Color(0xFF27865A)
-val AppInfo = Color(0xFF327CA8)
-val AppWarning = Color(0xFFF4B942)
-val AppError = Color(0xFFDF6868)
-val AppCelebration = Color(0xFFFFC857)
+val AppSuccess = Color(0xFF4F8068)
+val AppInfo = Color(0xFF557E9F)
+val AppWarning = Color(0xFFC99A53)
+val AppError = Color(0xFFBF6560)
+val AppCelebration = Color(0xFFE2B96F)

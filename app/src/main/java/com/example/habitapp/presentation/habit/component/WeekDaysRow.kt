@@ -56,6 +56,7 @@ fun WeekDaysRow(
                     contentAlignment = Alignment.TopCenter
                 ) {
                     WeekDayItem(
+                        modifier = Modifier.fillMaxWidth(),
                         date = date,
                         today = today,
                         selected = date == selectedDate,

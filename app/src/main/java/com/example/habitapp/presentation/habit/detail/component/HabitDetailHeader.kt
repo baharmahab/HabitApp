@@ -33,7 +33,7 @@ fun HabitDetailHeader(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Image(
-            painter = painterResource(id = R.drawable.img),
+            painter = painterResource(id = R.drawable.img_1),
             contentDescription = habitName,
             modifier = Modifier.size(100.dp)
         )

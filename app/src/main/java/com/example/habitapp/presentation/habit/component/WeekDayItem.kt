@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,6 +23,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.habitapp.core.CalendarLocalePolicy
@@ -44,7 +47,9 @@ fun WeekDayItem(
     modifier: Modifier = Modifier
 ) {
     val isPersian = CalendarLocalePolicy.isPersian()
-    val locale = LocalConfiguration.current.locales[0] ?: Locale.getDefault()
+
+    val locale = LocalConfiguration.current.locales[0]
+        ?: Locale.getDefault()
 
     val isToday = date == today
 
@@ -73,27 +78,34 @@ fun WeekDayItem(
 
     Column(
         modifier = modifier
-            .height(if(showDate) 72.dp else 40.dp )
+            .fillMaxWidth()
+            .height(if (showDate) 72.dp else 40.dp)
             .clip(RoundedCornerShape(60))
             .background(
-                color = if (selected) {
-                    GreenPrimaryContainer
-                } else {
-                    Color.Transparent
-                }
+                if (selected) GreenPrimaryContainer
+                else Color.Transparent
             )
             .clickable(onClick = onClick)
             .padding(vertical = 7.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        // نام روز هفته
         Text(
             text = dayName,
+            modifier = Modifier.fillMaxWidth(),
             color = textColor,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Clip
         )
 
         if (showDate) {
+
+            // عدد تاریخ دقیقاً زیر نام روز
             Box(
                 modifier = Modifier
                     .padding(top = 5.dp)
@@ -123,7 +135,8 @@ fun WeekDayItem(
                     text = dayNumber,
                     color = textColor,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = fontWeight,
+                    textAlign = TextAlign.Center
                 )
             }
         }
