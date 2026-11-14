@@ -10,6 +10,7 @@ import com.example.habitapp.presentation.habit.component.common.bottomSheet.Conf
 import com.example.habitapp.presentation.habit.component.common.bottomSheet.CycleCompletionBottomSheet
 import com.example.habitapp.presentation.habit.component.common.bottomSheet.CycleFailureBottomSheet
 import com.example.habitapp.presentation.habit.component.common.bottomSheet.DailyStatusBottomSheet
+import com.example.habitapp.presentation.habit.component.common.bottomSheet.StartNextCycleBottomSheet
 import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -22,6 +23,8 @@ fun HabitDetailSheetHost(
     onFailureSelected: (LocalDate) -> Unit,
     onSaveHabitSettings: (Habit, (Boolean) -> Unit) -> Unit,
     onConfirmFail: () -> Unit,
+    onContinueWithPreviousSettings: () -> Unit,
+    onUpdateSettings: (Long) -> Unit,
 ) {
     when (sheet) {
 
@@ -64,6 +67,17 @@ fun HabitDetailSheetHost(
         is HabitDetailSheet.CycleFailure -> {
             CycleFailureBottomSheet(
                 onConfirmRestart = onConfirmFail,
+                onDismiss = onDismiss
+            )
+        }
+        HabitDetailSheet.StartNextCycle -> {
+            StartNextCycleBottomSheet(
+                onContinueWithPreviousSettings = onContinueWithPreviousSettings,
+                onUpdateSettings = {
+                    uiState.habit?.let { habit ->
+                        onUpdateSettings(habit.id)
+                    }
+                },
                 onDismiss = onDismiss
             )
         }

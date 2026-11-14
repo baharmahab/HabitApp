@@ -1,6 +1,7 @@
 
 package com.example.habitapp.presentation.habit.detail
 
+import com.example.habitapp.presentation.habit.HabitSheet
 import com.example.habitapp.presentation.habit.component.common.bottomSheet.ConfigureHabitMode
 import java.time.LocalDate
 
@@ -20,6 +21,7 @@ sealed interface HabitDetailSheet {
     data object CycleCompletion : HabitDetailSheet
 
     data object CycleFailure : HabitDetailSheet
+    data object StartNextCycle : HabitDetailSheet
 
 
 }

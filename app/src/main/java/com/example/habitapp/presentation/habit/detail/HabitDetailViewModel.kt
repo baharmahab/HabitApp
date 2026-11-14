@@ -14,6 +14,7 @@ import com.example.habitapp.domain.usecase.GetHabitCycleSummaryUseCase
 import com.example.habitapp.domain.usecase.ObserveHabitDaysUseCase
 import com.example.habitapp.domain.usecase.RestartFailedHabitCycleUseCase
 import com.example.habitapp.domain.usecase.SetDailyStatusUseCase
+import com.example.habitapp.domain.usecase.StartNextHabitCycleUseCase
 import com.example.habitapp.domain.usecase.UpdateHabitUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
@@ -34,10 +35,10 @@ class HabitDetailViewModel @Inject constructor(
     private val updateHabitUseCase: UpdateHabitUseCase,
     private val setDailyStatusUseCase: SetDailyStatusUseCase,
     private val observeHabitDaysUseCase: ObserveHabitDaysUseCase,
-    private val restartHabitCycleUseCase: RestartFailedHabitCycleUseCase,
     private val getHabitCycleSummaryUseCase: GetHabitCycleSummaryUseCase,
     private val getHabitCardStateUseCase: GetHabitCardStateUseCase,
-    private val restartFailedHabitCycleUseCase: RestartFailedHabitCycleUseCase
+    private val restartFailedHabitCycleUseCase: RestartFailedHabitCycleUseCase,
+    private val startNextHabitCycleUseCase: StartNextHabitCycleUseCase,
 ) : ViewModel() {
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -87,8 +88,10 @@ class HabitDetailViewModel @Inject constructor(
 
                 // تشخیص پایان چله با همان منطق صفحه فهرست
                 val isCycleCompleted =
-                    getHabitCardStateUseCase(habit.id) ==
-                            HabitCardState.CYCLE_COMPLETED
+                    getHabitCardStateUseCase(
+                        habit = habit,
+                        today = LocalDate.now()
+                    ) == HabitCardState.CYCLE_COMPLETED
 
                 _uiState.update {
                     it.copy(
@@ -352,63 +355,6 @@ class HabitDetailViewModel @Inject constructor(
         }
     }
 
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun restartHabitCycle() {
-        val habit = currentHabit ?: return
-
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isLoading = true,
-                    error = null
-                )
-            }
-
-            try {
-                restartHabitCycleUseCase(
-                    habitId = habit.id,
-                    newStartDate = LocalDate.now()
-                )
-
-                val updatedHabit = getHabitByIdUseCase(habit.id)
-                    ?: throw IllegalArgumentException("Habit not found.")
-
-                currentHabit = updatedHabit
-
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        habit = updatedHabit,
-                        habitName = updatedHabit.name,
-                        startDate = updatedHabit.startDate,
-                        nextPendingDate = updatedHabit.nextPendingDate,
-                        normal = updatedHabit.normal,
-                        special = updatedHabit.special,
-                        emergency = updatedHabit.emergency,
-                        finalGoal = updatedHabit.finalGoal,
-                        isConfigured = updatedHabit.isConfigured,
-                        streakDays = 0,
-                        isCycleCompleted = false,
-                        dailyStatuses = emptyMap(),
-                        completedCycleSummary = null,
-                        /*showCycleCompletionSheet = false,
-                        showCycleFailureSheet = false,*/
-                        error = null
-                    )
-                }
-
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = e.message
-                            ?: "شروع دوبارهٔ چله انجام نشد."
-                    )
-                }
-            }
-        }
-    }
     @RequiresApi(Build.VERSION_CODES.O)
     fun restartFailedHabitCycle() {
         val habit = currentHabit ?: return
@@ -476,21 +422,6 @@ class HabitDetailViewModel @Inject constructor(
             }
         }
     }
-    /*
-        @RequiresApi(Build.VERSION_CODES.O)
-        fun dismissCycleCompletionSheet() {
-            _uiState.update {
-                it.copy(showCycleCompletionSheet = false)
-            }
-        }
-
-        @RequiresApi(Build.VERSION_CODES.O)
-        fun dismissCycleFailureSheet() {
-            _uiState.update {
-                it.copy(showCycleFailureSheet = false)
-            }
-        }*/
-
     @RequiresApi(Build.VERSION_CODES.O)
     private fun calculateStreakDays(
         startDate: LocalDate,
@@ -501,9 +432,89 @@ class HabitDetailViewModel @Inject constructor(
             .toInt()
             .coerceAtLeast(0)
     }
-    fun dismissCycleCompletionSheet() {
-        _uiState.update {
-            it.copy(showCycleCompletionSheet = false)
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun startNextHabitCycle(
+        onResult: (Boolean) -> Unit = {}
+    ) {
+        val habit = currentHabit
+
+        if (habit == null) {
+            onResult(false)
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    error = null
+                )
+            }
+
+            try {
+                // 1. محاسبه تاریخ شروع چله جدید
+                // روز بعد از روز چهلم چله قبلی
+                val newStartDate = habit.startDate.plusDays(40)
+
+                // 2. شروع چله جدید
+                startNextHabitCycleUseCase(
+                    habitId = habit.id,
+                    newStartDate = newStartDate
+                )
+
+                // 3. دریافت اطلاعات به‌روز عادت
+                val updatedHabit = getHabitByIdUseCase(habit.id)
+                    ?: throw IllegalArgumentException("Habit not found.")
+
+                currentHabit = updatedHabit
+
+                // 4. به‌روزرسانی وضعیت صفحه جزئیات
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+
+                        habit = updatedHabit,
+                        habitName = updatedHabit.name,
+
+                        startDate = updatedHabit.startDate,
+                        nextPendingDate = updatedHabit.nextPendingDate,
+
+                        normal = updatedHabit.normal,
+                        special = updatedHabit.special,
+                        emergency = updatedHabit.emergency,
+                        finalGoal = updatedHabit.finalGoal,
+
+                        isConfigured = updatedHabit.isConfigured,
+
+                        // وضعیت چله جدید
+                        streakDays = 0,
+                        successfulCycleStreak = updatedHabit.successfulCycleStreak,
+                        isCycleCompleted = false,
+
+                        // پاک کردن وضعیت‌های روزانه چله قبلی از UI
+                        dailyStatuses = emptyMap(),
+
+                        // بستن برگه تبریک
+                        showCycleCompletionSheet = false,
+                        completedCycleSummary = null,
+
+                        error = null
+                    )
+                }
+
+                onResult(true)
+
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = e.message ?: "شروع چله جدید انجام نشد."
+                    )
+                }
+
+                onResult(false)
+            }
         }
     }
 }

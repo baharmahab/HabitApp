@@ -34,6 +34,7 @@ import com.example.habitapp.domain.model.HabitCardState
 import com.example.habitapp.presentation.habit.component.CycleInvitationState
 import com.example.habitapp.presentation.habit.component.HabitItem
 import com.example.habitapp.presentation.habit.component.HabitsTopBar
+import com.example.habitapp.presentation.habit.component.common.bottomSheet.ConfigureHabitMode
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -151,6 +152,11 @@ fun HabitsScreen(
                             habit.startDate,
                             LocalDate.now()
                         ) + 1L
+                        // تعیین وضعیت دعوت به چله بعدی
+
+                        val isReadyForNextCycle =
+                            dayNumber > 40L &&
+                                    habit.nextPendingDate == habit.startDate.plusDays(40)
 
                         val cycleInvitationState =
                             if (cardState == HabitCardState.CYCLE_COMPLETED) {
@@ -158,7 +164,7 @@ fun HabitsScreen(
                                     dayNumber == 40L ->
                                         CycleInvitationState.COMPLETING_TODAY
 
-                                    dayNumber > 40L ->
+                                    isReadyForNextCycle ->
                                         CycleInvitationState.READY_FOR_NEXT_CYCLE
 
                                     else -> null
@@ -213,19 +219,11 @@ fun HabitsScreen(
                                     when (cardState) {
 
                                         HabitCardState.CYCLE_COMPLETED -> {
-                                            when {
-                                                dayNumber == 40L -> {
-                                                    onOpenHabitDetail(habit.id)
-                                                }
-
-                                                dayNumber > 40L -> {
-                                                    currentSheet =
-                                                        HabitSheet.StartNextCycle(habit.id)
-                                                }
-
-                                                else -> {
-                                                    onOpenHabitDetail(habit.id)
-                                                }
+                                            if (isReadyForNextCycle) {
+                                                currentSheet =
+                                                    HabitSheet.StartNextCycle(habit.id)
+                                            } else {
+                                                onOpenHabitDetail(habit.id)
                                             }
                                         }
 
@@ -240,7 +238,6 @@ fun HabitsScreen(
                                     }
                                 }
                             },
-
                             onDeleteClick = {
                                 currentSheet =
                                     HabitSheet.DeleteHabit(habit.id)
@@ -298,21 +295,34 @@ fun HabitsScreen(
                 habitId = habitId,
                 status = status
             )
+
             currentSheet = null
             revealedHabitId = null
         },
 
-        onDismissCycleCompletion = {
-            currentSheet = null
-            viewModel.dismissCycleCompletionSheet()
-        },
+        onContinueWithPreviousSettings = { habitId ->
 
-        onContinueWithPreviousSettings = {
-            // منطق شروع چله جدید در مرحله بعد متصل می‌شود.
+            viewModel.startNextHabitCycle(habitId) { success ->
+                if (success) {
+                    currentSheet = null
+                    revealedHabitId = null
+                }
+            }
         },
 
         onUpdateSettings = { habitId ->
-            currentSheet = HabitSheet.ConfigureHabit(habitId)
+            currentSheet = HabitSheet.ConfigureHabit(
+                habitId = habitId,
+                mode = ConfigureHabitMode.NEXT_CYCLE
+            )
+        },
+        onStartNextCycleWithUpdatedSettings = { updatedHabit, onResult ->
+
+            viewModel.startNextHabitCycle(
+                habitId = updatedHabit.id,
+                updatedHabit = updatedHabit,
+                onResult = onResult
+            )
         }
     )
 }

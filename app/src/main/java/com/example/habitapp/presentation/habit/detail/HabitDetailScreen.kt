@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.habitapp.presentation.habit.component.CycleInvitationState
+import com.example.habitapp.presentation.habit.component.common.bottomSheet.ConfigureHabitMode
 import com.example.habitapp.presentation.habit.detail.component.HabitDetailContent
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -56,25 +57,32 @@ fun HabitDetailScreen(
     }
 
     // تعیین وضعیت دعوت به چله بعدی
-    val cycleInvitationState =
-        if (uiState.isCycleCompleted) {
-            val dayNumber = ChronoUnit.DAYS.between(
-                uiState.startDate,
-                LocalDate.now()
-            ) + 1L
+    val habit = uiState.habit
 
-            when {
-                dayNumber == 40L ->
-                    CycleInvitationState.COMPLETING_TODAY
+    val cycleInvitationState = if (
+        uiState.isCycleCompleted && habit != null
+    ) {
+        val dayNumber = ChronoUnit.DAYS.between(
+            habit.startDate,
+            LocalDate.now()
+        ) + 1L
 
-                dayNumber > 40L ->
-                    CycleInvitationState.READY_FOR_NEXT_CYCLE
+        val isReadyForNextCycle =
+            dayNumber > 40L &&
+                    habit.nextPendingDate == habit.startDate.plusDays(40)
 
-                else -> null
-            }
-        } else {
-            null
+        when {
+            dayNumber == 40L ->
+                CycleInvitationState.COMPLETING_TODAY
+
+            isReadyForNextCycle ->
+                CycleInvitationState.READY_FOR_NEXT_CYCLE
+
+            else -> null
         }
+    } else {
+        null
+    }
 
     Scaffold(
         containerColor = Color(0xFFF4F1E8),
@@ -120,10 +128,15 @@ fun HabitDetailScreen(
                 HabitDetailContent(
                     uiState = uiState,
                     cycleInvitationState = cycleInvitationState,
+
                     onDayClick = { date ->
-                        currentSheet =
-                            HabitDetailSheet.DailyStatus(date)
+                        currentSheet = HabitDetailSheet.DailyStatus(date)
                     },
+
+                    onStartNextCycle = {
+                        currentSheet = HabitDetailSheet.StartNextCycle
+                    },
+
                     onEdit = viewModel::startEditing,
                     onValueChange = viewModel::updateEditingValue,
                     onSaveEdit = viewModel::saveEditingField,
@@ -162,10 +175,23 @@ fun HabitDetailScreen(
             viewModel.restartFailedHabitCycle()
         },
 
-        onFailureSelected = { date ->
+        onFailureSelected = {
             currentSheet = HabitDetailSheet.CycleFailure
         },
 
+        onContinueWithPreviousSettings = {
+            viewModel.startNextHabitCycle { success ->
+                if (success) {
+                    currentSheet = null
+                }
+            }
+        },
 
-        )
+        onUpdateSettings = { id ->
+            currentSheet = HabitDetailSheet.ConfigureHabit(
+                habitId = id,
+                mode = ConfigureHabitMode.EDIT_SETTINGS
+            )
+        }
+    )
 }

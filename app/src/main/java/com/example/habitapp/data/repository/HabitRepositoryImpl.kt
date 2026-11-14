@@ -346,9 +346,11 @@ class HabitRepositoryImpl @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun startNextHabitCycle(
         habitId: Long,
-        newStartDate: LocalDate
+        newStartDate: LocalDate,
+        updatedHabit: Habit?
     ) {
         database.withTransaction {
+            // اطلاعات فعلی عادت؛ همان تنظیمات چله قبلی
             val habit = getHabitOrThrow(habitId)
 
             val endDate = newStartDate.minusDays(1)
@@ -359,11 +361,13 @@ class HabitRepositoryImpl @Inject constructor(
                     date >= LocalDate.parse(habit.startDate) &&
                             date <= endDate
                 }
+
+            // ذخیره خلاصه با اطلاعات چله قبلی
             saveCycleSummary(
                 habit = habit,
                 habitDays = habitDays,
                 endDate = endDate,
-                isFailed = true // در چله موفق false
+                isFailed = false
             )
 
             clearPreviousCycleDays(
@@ -372,8 +376,21 @@ class HabitRepositoryImpl @Inject constructor(
                 endDate = endDate
             )
 
+            // انتخاب تنظیمات چله جدید
+            val habitForNextCycle = if (updatedHabit != null) {
+                habit.copy(
+                    name = updatedHabit.name,
+                    normal = updatedHabit.normal,
+                    special = updatedHabit.special,
+                    emergency = updatedHabit.emergency,
+                    finalGoal = updatedHabit.finalGoal
+                )
+            } else {
+                habit
+            }
+
             updateHabitForNextCycle(
-                habit = habit,
+                habit = habitForNextCycle,
                 newStartDate = newStartDate,
                 isFailed = false
             )

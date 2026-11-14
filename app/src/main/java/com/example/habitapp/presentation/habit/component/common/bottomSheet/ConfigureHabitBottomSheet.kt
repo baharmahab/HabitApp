@@ -37,7 +37,8 @@ import java.time.LocalDate
 
 enum class ConfigureHabitMode {
     INITIAL_SETUP,
-    EDIT_SETTINGS
+    EDIT_SETTINGS,
+    NEXT_CYCLE
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
