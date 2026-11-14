@@ -1,46 +1,36 @@
-
 package com.example.habitapp.presentation.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import com.example.habitapp.ui.theme.AppBackground
-import com.example.habitapp.ui.theme.AppOutline
-import com.example.habitapp.ui.theme.AppSurface
-import com.example.habitapp.ui.theme.AppSurfaceVariant
-import com.example.habitapp.ui.theme.GreenOnPrimary
-import com.example.habitapp.ui.theme.GreenOnPrimaryContainer
-import com.example.habitapp.ui.theme.GreenPrimary
-import com.example.habitapp.ui.theme.GreenPrimaryContainer
-import com.example.habitapp.ui.theme.TopBarBackground
-import com.example.habitapp.ui.theme.TextPrimary
-import com.example.habitapp.ui.theme.TextSecondary
+import com.example.habitapp.ui.theme.*
 
 private val HabitLightColorScheme = lightColorScheme(
-    // Primary — Green
+
+    // Primary - Fresh Green
     primary = GreenPrimary,
     onPrimary = GreenOnPrimary,
     primaryContainer = GreenPrimaryContainer,
     onPrimaryContainer = GreenOnPrimaryContainer,
 
-    // Secondary — Soft Green
-    secondary = GreenPrimary,
-    onSecondary = GreenOnPrimary,
-    secondaryContainer = GreenPrimaryContainer,
-    onSecondaryContainer = GreenOnPrimaryContainer,
+    // Secondary - Sky Blue
+    secondary = BlueSecondary,
+    onSecondary = BlueOnSecondary,
+    secondaryContainer = BlueSecondaryContainer,
+    onSecondaryContainer = BlueOnSecondaryContainer,
 
-    // Tertiary — Soft Blue
-    tertiary = androidx.compose.ui.graphics.Color(0xFF7EA6C6),
-    onTertiary = androidx.compose.ui.graphics.Color(0xFF18364A),
-    tertiaryContainer = androidx.compose.ui.graphics.Color(0xFFDCEAF7),
-    onTertiaryContainer = androidx.compose.ui.graphics.Color(0xFF254A63),
+    // Tertiary - Sunshine Yellow
+    tertiary = YellowTertiary,
+    onTertiary = YellowOnTertiary,
+    tertiaryContainer = YellowTertiaryContainer,
+    onTertiaryContainer = YellowOnTertiaryContainer,
 
     // Background
-    background = androidx.compose.ui.graphics.Color.White,
+    background = AppBackground,
     onBackground = TextPrimary,
 
     // Surface
-    surface = androidx.compose.ui.graphics.Color.White,
+    surface = AppSurface,
     onSurface = TextPrimary,
     surfaceVariant = AppSurfaceVariant,
     onSurfaceVariant = TextSecondary,
@@ -49,9 +39,9 @@ private val HabitLightColorScheme = lightColorScheme(
     outline = AppOutline,
 
     // Error
-    error = androidx.compose.ui.graphics.Color(0xFFD7655D),
+    error = AppError,
     onError = androidx.compose.ui.graphics.Color.White,
-    errorContainer = androidx.compose.ui.graphics.Color(0xFFFBE5E3),
+    errorContainer = StatusFailedContainer,
     onErrorContainer = androidx.compose.ui.graphics.Color(0xFF6F2520)
 )
 
