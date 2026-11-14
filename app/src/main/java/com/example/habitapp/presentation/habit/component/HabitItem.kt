@@ -3,15 +3,16 @@ package com.example.habitapp.presentation.habit.component
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -74,13 +74,15 @@ fun HabitItem(
         dragOffset = if (revealed) -revealWidth else 0f
     }
 
+    val cardShape = RoundedCornerShape(20.dp)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(cardShape)
     ) {
 
-        // کارت حذف
+        // Delete action
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -94,18 +96,11 @@ fun HabitItem(
             }
         }
 
-        // کارت اصلی
+        // Main habit card
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(85.dp)
-                .alpha(
-                    if (cardState == HabitCardState.NEEDS_REVIEW) {
-                        0.5f
-                    } else {
-                        1f
-                    }
-                )
+                .defaultMinSize(minHeight = 85.dp)
                 .offset {
                     IntOffset(
                         x = dragOffset.roundToInt(),
@@ -135,9 +130,23 @@ fun HabitItem(
                 .clickable {
                     onCardClick()
                 },
-            shape = RoundedCornerShape(16.dp),
+            shape = cardShape,
+            border = if (
+                cardState == HabitCardState.NEEDS_REVIEW
+            ) {
+                BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.tertiary
+                )
+            } else {
+                null
+            },
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 1.dp,
+                pressedElevation = 3.dp
             )
         ) {
             HabitCardContent(
@@ -161,9 +170,9 @@ private fun DeleteHabitCard(
             width = 60.dp,
             height = 80.dp
         ),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFD94747)
+            containerColor = MaterialTheme.colorScheme.error
         ),
         onClick = onClick
     ) {

@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.example.habitapp.domain.model.DailyStatus
@@ -115,13 +116,18 @@ private fun StandardHabitCard(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(
+                horizontal = 18.dp,
+                vertical = 16.dp
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = habit.name,
             modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyLarge.copy(
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold,
                 textDecoration = if (completed) {
                     TextDecoration.LineThrough
                 } else {
@@ -150,7 +156,10 @@ private fun CycleCompletedHabitCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(
+                horizontal = 18.dp,
+                vertical = 14.dp
+            ),
         verticalArrangement = Arrangement.Center
     ) {
         Row(
@@ -159,7 +168,10 @@ private fun CycleCompletedHabitCard(
             Text(
                 text = habit.name,
                 modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyLarge
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold
+                )
             )
 
             DailyStatusCircle(
@@ -171,7 +183,7 @@ private fun CycleCompletedHabitCard(
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         when (cycleInvitationState) {
 
@@ -179,7 +191,9 @@ private fun CycleCompletedHabitCard(
                 Text(
                     text = "🎉 چله ۴۰ روزه‌ات با موفقیت به پایان رسید",
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    )
                 )
             }
 
@@ -187,14 +201,16 @@ private fun CycleCompletedHabitCard(
                 Text(
                     text = "🌱 چله قبلی با موفقیت به پایان رسید.",
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    )
                 )
 
                 Text(
                     text = "برای شروع یک مسیر تازه آماده‌ای؟",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = 5.dp)
                 )
             }
 
