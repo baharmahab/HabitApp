@@ -1,6 +1,7 @@
-
 package com.example.habitapp.core
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.LayoutDirection
@@ -15,7 +16,7 @@ import java.time.DayOfWeek
  * - نمایش تاریخ شمسی
  *
  * انگلیسی:
- * - شروع هفته از دوشنبه
+ * - شروع هفته از یکشنبه
  * - جهت رابط کاربری چپ‌به‌راست
  * - نمایش تاریخ میلادی
  *
@@ -30,22 +31,30 @@ object CalendarLocalePolicy {
     @Composable
     fun isPersian(): Boolean {
         val configuration = LocalConfiguration.current
+
         return configuration.locales[0]?.language == "fa"
     }
 
     /**
      * اولین روز هفته را بر اساس زبان فعال مشخص می‌کند.
+     *
+     * فارسی: شنبه
+     * انگلیسی: یکشنبه
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     fun firstDayOfWeek(isPersian: Boolean): DayOfWeek {
         return if (isPersian) {
             DayOfWeek.SATURDAY
         } else {
-            DayOfWeek.MONDAY
+            DayOfWeek.SUNDAY
         }
     }
 
     /**
      * جهت نمایش اجزای تقویم را تعیین می‌کند.
+     *
+     * فارسی: راست‌به‌چپ
+     * انگلیسی: چپ‌به‌راست
      */
     fun layoutDirection(isPersian: Boolean): LayoutDirection {
         return if (isPersian) {
@@ -57,8 +66,10 @@ object CalendarLocalePolicy {
 
     /**
      * فاصله روز هفته از اولین روز هفته را محاسبه می‌کند.
+     *
      * خروجی بین صفر و شش است.
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     fun dayOffset(
         dayOfWeek: DayOfWeek,
         isPersian: Boolean

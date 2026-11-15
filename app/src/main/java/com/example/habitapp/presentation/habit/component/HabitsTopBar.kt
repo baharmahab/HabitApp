@@ -75,7 +75,7 @@ fun HabitsTopBar(
 
             WeekDaysRow(
                 selectedDate = selectedDate,
-                onDateSelected = onDateSelected
+                onDateSelected = onDateSelected,
             )
         }
     }

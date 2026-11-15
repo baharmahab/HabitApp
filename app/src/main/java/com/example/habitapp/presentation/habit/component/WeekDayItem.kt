@@ -31,6 +31,7 @@ import com.example.habitapp.core.CalendarLocalePolicy
 import com.example.habitapp.core.JalaliDateConverter
 import com.example.habitapp.ui.theme.AppOutline
 import com.example.habitapp.ui.theme.GreenPrimaryContainer
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -43,6 +44,7 @@ fun WeekDayItem(
     selected: Boolean,
     showDate: Boolean = true,
     highlightToday: Boolean = true,
+    shortDayName: Boolean = false,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -65,10 +67,23 @@ fun WeekDayItem(
         FontWeight.Normal
     }
 
-    val dayName = date.dayOfWeek.getDisplayName(
-        TextStyle.SHORT,
-        locale
-    )
+    // نام روز هفته
+    val dayName = if (isPersian && shortDayName) {
+        when (date.dayOfWeek) {
+            DayOfWeek.SATURDAY -> "ش"
+            DayOfWeek.SUNDAY -> "ی"
+            DayOfWeek.MONDAY -> "د"
+            DayOfWeek.TUESDAY -> "س"
+            DayOfWeek.WEDNESDAY -> "چ"
+            DayOfWeek.THURSDAY -> "پ"
+            DayOfWeek.FRIDAY -> "ج"
+        }
+    } else {
+        date.dayOfWeek.getDisplayName(
+            TextStyle.SHORT,
+            locale
+        )
+    }
 
     val dayNumber = if (isPersian) {
         JalaliDateConverter.formatDay(date)

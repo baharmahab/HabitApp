@@ -30,6 +30,7 @@ fun HabitCalendarCard(
     dailyStatuses: Map<LocalDate, com.example.habitapp.domain.model.DailyStatus?> =
         emptyMap(),
     onDayClick: (LocalDate) -> Unit = {},
+    shortDayName: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val today = LocalDate.now()
@@ -79,7 +80,8 @@ fun HabitCalendarCard(
                 selectedDate = today,
                 showDate = false,
                 highlightToday = false,
-                onDateSelected = {}
+                onDateSelected = {},
+                shortDayName = shortDayName
             )
 
             HabitDayGrid(

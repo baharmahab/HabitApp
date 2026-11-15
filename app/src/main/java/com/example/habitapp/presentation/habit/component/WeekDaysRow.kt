@@ -24,6 +24,7 @@ fun WeekDaysRow(
     selectedDate: LocalDate,
     showDate: Boolean = true,
     highlightToday: Boolean = true,
+    shortDayName: Boolean = false,
     modifier: Modifier = Modifier,
     onDateSelected: (LocalDate) -> Unit
 ) {
@@ -62,6 +63,7 @@ fun WeekDaysRow(
                         selected = date == selectedDate,
                         showDate = showDate,
                         highlightToday = highlightToday,
+                        shortDayName = shortDayName,
                         onClick = {
                             onDateSelected(date)
                         }
