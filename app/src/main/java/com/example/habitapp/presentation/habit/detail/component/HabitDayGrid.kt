@@ -30,27 +30,46 @@ fun HabitDayGrid(
     nextPendingDate: LocalDate,
     dailyStatuses: Map<LocalDate, DailyStatus?> = emptyMap(),
     onDayClick: (LocalDate) -> Unit = {},
+    showFullCycle: Boolean = false,
+    onToggleExpanded: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val isPersian = CalendarLocalePolicy.isPersian()
+
     val layoutDirection =
         CalendarLocalePolicy.layoutDirection(isPersian)
 
-    // تاریخ‌های عادت مستقل از زبان دستگاه باقی می‌مانند.
+    val today = LocalDate.now()
+
     val days = (0 until 40).map { offset ->
         startDate.plusDays(offset.toLong())
     }
 
-    // تعداد خانه‌های خالی پیش از اولین روز هفته.
+    /*
+     * حالت خلاصه:
+     * فقط هفته‌ای که امروز در آن قرار دارد نمایش داده می‌شود.
+     */
+    val currentWeekDays: List<LocalDate?> = rememberCurrentWeek(
+        today = today,
+        isPersian = isPersian,
+        startDate = startDate,
+        days = days
+    )
+
+    /*
+     * حالت کامل:
+     * همان منطق قبلی ۴۰ روز چله.
+     */
     val firstDayOffset = CalendarLocalePolicy.dayOffset(
         dayOfWeek = startDate.dayOfWeek,
         isPersian = isPersian
     )
 
-    val cells = buildList<LocalDate?> {
+    val fullCycleCells = buildList<LocalDate?> {
         repeat(firstDayOffset) {
             add(null)
         }
+
         addAll(days)
     }
 
@@ -58,39 +77,95 @@ fun HabitDayGrid(
         LocalLayoutDirection provides layoutDirection
     ) {
         Column(
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier
+                .fillMaxWidth()
+                .clickable(
+                    onClick = onToggleExpanded
+                ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            cells.chunked(7).forEach { week ->
+
+            if (showFullCycle) {
+
+                /*
+                 * تقویم کامل ۴۰ روزه
+                 */
+                fullCycleCells
+                    .chunked(7)
+                    .forEach { week ->
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.Top
+                        ) {
+
+                            week.forEach { date ->
+
+                                Box(
+                                    modifier = Modifier.weight(1f),
+                                    contentAlignment = Alignment.TopCenter
+                                ) {
+
+                                    if (date != null) {
+
+                                        HabitDayCell(
+                                            date = date,
+                                            isPersian = isPersian,
+                                            status = dailyStatuses[date],
+                                            isEditable = isEditableDay(
+                                                date = date,
+                                                nextPendingDate = nextPendingDate,
+                                                dailyStatuses = dailyStatuses
+                                            ),
+                                            onClick = {
+                                                onDayClick(date)
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+
+                            /*
+                             * تکمیل ردیف آخر
+                             */
+                            repeat(7 - week.size) {
+                                Spacer(
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+                    }
+
+            } else {
+
+                /*
+                 * فقط هفته جاری
+                 */
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.Top
                 ) {
-                    week.forEach { date ->
+
+                    currentWeekDays.forEach { date ->
+
                         Box(
                             modifier = Modifier.weight(1f),
                             contentAlignment = Alignment.TopCenter
                         ) {
+
                             if (date != null) {
-                                val isAlreadyRegistered =
-                                    dailyStatuses[date] != null
-
-                                val isNextPendingDate =
-                                    date == nextPendingDate
-
-                                val isNotFutureDate =
-                                    !date.isAfter(LocalDate.now())
-
-                                // فقط روزهای مجاز قابل انتخاب‌اند.
-                                val isEditable = isNotFutureDate &&
-                                        (isAlreadyRegistered || isNextPendingDate)
 
                                 HabitDayCell(
                                     date = date,
                                     isPersian = isPersian,
                                     status = dailyStatuses[date],
-                                    isEditable = isEditable,
+                                    isEditable = isEditableDay(
+                                        date = date,
+                                        nextPendingDate = nextPendingDate,
+                                        dailyStatuses = dailyStatuses
+                                    ),
                                     onClick = {
                                         onDayClick(date)
                                     }
@@ -98,19 +173,66 @@ fun HabitDayGrid(
                             }
                         }
                     }
-
-                    // تکمیل ردیف آخر برای حفظ هفت ستون.
-                    repeat(7 - week.size) {
-                        Spacer(
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
                 }
             }
         }
     }
 }
 
+/**
+ * هفته‌ای که امروز داخل آن قرار دارد.
+ *
+ * اگر بخشی از هفته خارج از بازه ۴۰ روزه باشد،
+ * آن قسمت به صورت خانه خالی نمایش داده می‌شود.
+ */
+@RequiresApi(Build.VERSION_CODES.O)
+private fun rememberCurrentWeek(
+    today: LocalDate,
+    isPersian: Boolean,
+    startDate: LocalDate,
+    days: List<LocalDate>
+): List<LocalDate?> {
+
+    val todayOffset = CalendarLocalePolicy.dayOffset(
+        dayOfWeek = today.dayOfWeek,
+        isPersian = isPersian
+    )
+
+    val weekStart = today.minusDays(
+        todayOffset.toLong()
+    )
+
+    return (0 until 7).map { index ->
+
+        val date = weekStart.plusDays(index.toLong())
+
+        if (date in days) {
+            date
+        } else {
+            null
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun isEditableDay(
+    date: LocalDate,
+    nextPendingDate: LocalDate,
+    dailyStatuses: Map<LocalDate, DailyStatus?>
+): Boolean {
+
+    val isAlreadyRegistered =
+        dailyStatuses[date] != null
+
+    val isNextPendingDate =
+        date == nextPendingDate
+
+    val isNotFutureDate =
+        !date.isAfter(LocalDate.now())
+
+    return isNotFutureDate &&
+            (isAlreadyRegistered || isNextPendingDate)
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

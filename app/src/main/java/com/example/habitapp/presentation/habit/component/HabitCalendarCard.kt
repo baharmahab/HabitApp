@@ -1,8 +1,14 @@
 package com.example.habitapp.presentation.habit.component
 
-
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,11 +18,16 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.habitapp.core.CalendarLocalePolicy
 import com.example.habitapp.core.JalaliDateConverter
+import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.presentation.habit.detail.component.HabitDayGrid
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -27,15 +38,15 @@ import java.util.Locale
 fun HabitCalendarCard(
     startDate: LocalDate,
     nextPendingDate: LocalDate,
-    dailyStatuses: Map<LocalDate, com.example.habitapp.domain.model.DailyStatus?> =
-        emptyMap(),
+    dailyStatuses: Map<LocalDate, DailyStatus?> = emptyMap(),
     onDayClick: (LocalDate) -> Unit = {},
     shortDayName: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val today = LocalDate.now()
     val isPersian = CalendarLocalePolicy.isPersian()
-    val context = LocalContext.current
+
+    var isExpanded by remember { mutableStateOf(false) }
 
     val monthYear = if (isPersian) {
         JalaliDateConverter.formatDate(today)
@@ -68,12 +79,13 @@ fun HabitCalendarCard(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
             Text(
                 text = monthYear,
                 modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                textAlign = TextAlign.Center
             )
 
             WeekDaysRow(
@@ -84,12 +96,29 @@ fun HabitCalendarCard(
                 shortDayName = shortDayName
             )
 
-            HabitDayGrid(
-                startDate = startDate,
-                nextPendingDate = nextPendingDate,
-                dailyStatuses = dailyStatuses,
-                onDayClick = onDayClick
-            )
+            AnimatedContent(
+                targetState = isExpanded,
+                transitionSpec = {
+                    (
+                            fadeIn() + expandVertically()
+                            ).togetherWith(
+                            fadeOut() + shrinkVertically()
+                        )
+                },
+                label = "habit_calendar_expand"
+            ) { expanded ->
+
+                HabitDayGrid(
+                    startDate = startDate,
+                    nextPendingDate = nextPendingDate,
+                    dailyStatuses = dailyStatuses,
+                    onDayClick = onDayClick,
+                    showFullCycle = expanded,
+                    onToggleExpanded = {
+                        isExpanded = !isExpanded
+                    }
+                )
+            }
         }
     }
 }
