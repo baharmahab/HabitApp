@@ -13,11 +13,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.habitapp.presentation.habit.component.CycleInvitationState
-import com.example.habitapp.presentation.habit.component.HabitCalendarCard
 import com.example.habitapp.presentation.habit.component.HabitGoalSection
+import com.example.habitapp.presentation.habit.component.HabitGoalSection2
 import com.example.habitapp.presentation.habit.component.NextCycleInvitation
 import com.example.habitapp.presentation.habit.detail.EditingField
 import com.example.habitapp.presentation.habit.detail.HabitDetailUiState
@@ -41,7 +42,8 @@ fun HabitDetailContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         HabitDetailHeader(
             habitName = uiState.habitName,
@@ -69,19 +71,15 @@ fun HabitDetailContent(
             onDayClick = onDayClick
         )
 
-        HabitPlanSection(
+        HabitPlanSection2(
             normal = uiState.normal,
             special = uiState.special,
-            emergency = uiState.emergency,
-            editingField = uiState.editingField,
-            editingValue = uiState.editingValue,
-            onEdit = onEdit,
-            onValueChange = onValueChange,
-            onSave = onSaveEdit,
-            onCancel = onCancelEdit
+            emergency = uiState.emergency
         )
-
-        HabitGoalSection(
+        HabitGoalSection2(
+            value = uiState.finalGoal
+        )
+        /*HabitGoalSection(
             value = uiState.finalGoal,
             editingField = uiState.editingField,
             editingValue = uiState.editingValue,
@@ -89,7 +87,7 @@ fun HabitDetailContent(
             onValueChange = onValueChange,
             onSave = onSaveEdit,
             onCancel = onCancelEdit
-        )
+        )*/
 
         if (uiState.error != null) {
             Text(

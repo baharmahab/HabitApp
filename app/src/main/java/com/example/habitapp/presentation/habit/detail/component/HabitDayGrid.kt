@@ -31,7 +31,6 @@ fun HabitDayGrid(
     nextPendingDate: LocalDate,
     dailyStatuses: Map<LocalDate, DailyStatus?> = emptyMap(),
     onDayClick: (LocalDate) -> Unit = {},
-    isExpanded: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val isPersian = CalendarLocalePolicy.isPersian()
@@ -41,34 +40,11 @@ fun HabitDayGrid(
 
     val today = LocalDate.now()
 
-    val cycleEndDate = startDate.plusDays(39)
-
-    /*
-     * برای چرخه‌ای که هنوز شروع نشده،
-     * هفته شروع چرخه نمایش داده می‌شود.
-     *
-     * اگر چرخه تمام شده باشد،
-     * آخرین هفته چرخه نمایش داده می‌شود.
-     */
-    val referenceDate = when {
-        today.isBefore(startDate) -> startDate
-        today.isAfter(cycleEndDate) -> cycleEndDate
-        else -> today
-    }
-
-    val cells = if (isExpanded) {
-        buildFullCycleCells(
-            startDate = startDate,
-            isPersian = isPersian
-        )
-    } else {
-        buildCurrentWeekCells(
-            referenceDate = referenceDate,
-            startDate = startDate,
-            cycleEndDate = cycleEndDate,
-            isPersian = isPersian
-        )
-    }
+    // ساخت همیشه تقویم کامل ۴۰ روزه
+    val cells = buildFullCycleCells(
+        startDate = startDate,
+        isPersian = isPersian
+    )
 
     CompositionLocalProvider(
         LocalLayoutDirection provides layoutDirection
@@ -121,6 +97,7 @@ fun HabitDayGrid(
                         }
                     }
 
+                    // تکمیل خانه‌های خالی ردیف آخر
                     repeat(7 - week.size) {
                         Spacer(
                             modifier = Modifier.weight(1f)
@@ -128,43 +105,6 @@ fun HabitDayGrid(
                     }
                 }
             }
-        }
-    }
-}
-
-/**
- * ساخت روزهای هفته جاری
- *
- * روزهای خارج از محدوده ۴۰ روز چرخه
- * به صورت خانه خالی نمایش داده می‌شوند.
- */
-@RequiresApi(Build.VERSION_CODES.O)
-private fun buildCurrentWeekCells(
-    referenceDate: LocalDate,
-    startDate: LocalDate,
-    cycleEndDate: LocalDate,
-    isPersian: Boolean
-): List<LocalDate?> {
-
-    val dayOffset = CalendarLocalePolicy.dayOffset(
-        dayOfWeek = referenceDate.dayOfWeek,
-        isPersian = isPersian
-    )
-
-    val weekStart = referenceDate.minusDays(
-        dayOffset.toLong()
-    )
-
-    return (0 until 7).map { offset ->
-        val date = weekStart.plusDays(offset.toLong())
-
-        if (
-            !date.isBefore(startDate) &&
-            !date.isAfter(cycleEndDate)
-        ) {
-            date
-        } else {
-            null
         }
     }
 }

@@ -68,7 +68,7 @@ val TextDisabled = Color(0xFF929B94)
 
 val AppOutline = Color(0xFFE4E2DA)
 val AppDivider = Color(0xFFECEAE2)
-
+/*
 // ==========================================
 // Daily Status Colors
 // ==========================================
@@ -83,7 +83,22 @@ val StatusSpecialContainer = Color(0xFFDFEAF3)
 
 // Emergency
 val StatusEmergency = Color(0xFFA9793E)
-val StatusEmergencyContainer = Color(0xFFF7E9D3)
+val StatusEmergencyContainer = Color(0xFFF7E9D3)*/
+// ==========================================
+// Daily Status Colors
+// ==========================================
+
+// Normal - Green
+val StatusNormal = Color(0xFF03A43E)
+val StatusNormalContainer = Color(0xFFDCEEE2)
+
+// Special - Yellow
+val StatusSpecial = Color(0xFF484101)
+val StatusSpecialContainer = Color(0xFFFFEB3B)
+
+// Emergency - Red
+val StatusEmergency = Color(0xFFFC1403)
+val StatusEmergencyContainer = Color(0xFFF5DEDC)
 
 // Failed
 val StatusFailed = Color(0xFFBF6560)

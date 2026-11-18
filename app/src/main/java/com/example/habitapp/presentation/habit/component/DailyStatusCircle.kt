@@ -23,7 +23,6 @@ import com.example.habitapp.R
 import com.example.habitapp.domain.model.DailyStatus
 import com.example.habitapp.ui.theme.AppOutline
 import com.example.habitapp.ui.theme.AppSurface
-import com.example.habitapp.ui.theme.AppSurfaceVariant
 import com.example.habitapp.ui.theme.GreenPrimary
 import com.example.habitapp.ui.theme.StatusEmergency
 import com.example.habitapp.ui.theme.StatusEmergencyContainer
@@ -99,7 +98,7 @@ fun DailyStatusCircle(
             Text(
                 text = dayText,
                 style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
                 color = statusTextColor
             )
         }
